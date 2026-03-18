@@ -158,7 +158,7 @@ export default function Home() {
 
       if (!res.ok) {
         const data = await res.json() as { error?: string };
-        setError(data.error === 'RATE_LIMIT' ? '今日免费次数已用完，明天再来吧 👀' : '解密失败，请稍后重试');
+        setError('解密失败，请稍后重试');
         return;
       }
 
@@ -319,7 +319,7 @@ export default function Home() {
           {isDecoding ? (
             <><Sparkles className="w-6 h-6 animate-spin" /><span>{mode === 'decode' ? '解密中...' : '加密中...'}</span></>
           ) : (
-            <><Zap className="w-6 h-6 group-hover:animate-pulse" /><span>{mode === 'decode' ? '解密真相' : '职场化！'}</span></>
+            <><Zap className="w-6 h-6 group-hover:animate-pulse" /><span>{mode === 'decode' ? '解密' : '职场化！'}</span></>
           )}
         </button>
       </div>

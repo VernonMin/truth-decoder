@@ -22,9 +22,9 @@ export async function POST(request: Request) {
     return Response.json({ error: '输入无效（1-1000字符）' }, { status: 400 });
   }
 
-  // 与解密共享每日限额（10次/天）
+  // 加密模式每日限1次
   const usage = await checkRateLimit(typedEnv.DB, sessionId);
-  if (usage.count >= 10) {
+  if (usage.count >= 1) {
     return Response.json({ error: 'RATE_LIMIT', remaining: 0 }, { status: 429 });
   }
 

@@ -1,6 +1,6 @@
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { callDeepSeek } from '@/lib/gemini';
-import { checkRateLimit, incrementUsage, logDecode } from '@/lib/d1';
+import { logDecode } from '@/lib/d1';
 import type { Env } from '@/types';
 
 export const runtime = 'edge';
@@ -22,12 +22,6 @@ export async function POST(request: Request) {
     return Response.json({ error: '输入无效（1-500字符）' }, { status: 400 });
   }
 
-  // Rate limit: 10 free decodes per session per day
-  const usage = await checkRateLimit(typedEnv.DB, sessionId);
-  if (usage.count >= 10) {
-    return Response.json({ error: 'RATE_LIMIT', remaining: 0 }, { status: 429 });
-  }
-
   let result;
   try {
     result = await callDeepSeek(text, typedEnv.DEEPSEEK_API_KEY);
@@ -36,12 +30,7 @@ export async function POST(request: Request) {
     return Response.json({ error: 'AI 服务暂时不可用，请稍后重试' }, { status: 502 });
   }
 
-  ctx.waitUntil(
-    Promise.all([
-      incrementUsage(typedEnv.DB, sessionId),
-      logDecode(typedEnv.DB, sessionId, text, result.puaLevel),
-    ])
-  );
+  ctx.waitUntil(logDecode(typedEnv.DB, sessionId, text, result.puaLevel));
 
   return Response.json(result);
 }
