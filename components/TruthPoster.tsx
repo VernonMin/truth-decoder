@@ -154,7 +154,7 @@ export default function TruthPoster({ input, result, appUrl, qrDataUrl }: Props)
         {/* 右：二维码 */}
         {qrDataUrl && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-            <img src={qrDataUrl} width={60} height={60} alt="qr" style={{ display: 'block' }} />
+            <div style={{ width: 60, height: 60, backgroundImage: `url(${qrDataUrl})`, backgroundSize: 'cover', backgroundRepeat: 'no-repeat' }} />
             <span style={{ color: 'rgba(204,255,0,0.35)', fontSize: 8 }}>扫码翻译黑话</span>
           </div>
         )}
@@ -343,7 +343,7 @@ export function EncodePoster({ input, result, appUrl, qrDataUrl, sector = 'tech'
         {/* 右：二维码 */}
         {qrDataUrl && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
-            <img src={qrDataUrl} width={60} height={60} alt="qr" style={{ display: 'block' }} />
+            <div style={{ width: 60, height: 60, backgroundImage: `url(${qrDataUrl})`, backgroundSize: 'cover', backgroundRepeat: 'no-repeat' }} />
             <span style={{ color: 'rgba(204,255,0,0.35)', fontSize: 8 }}>扫码加密报告</span>
           </div>
         )}
