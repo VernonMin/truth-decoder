@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "next dev",
-    "build": "npx @cloudflare/next-on-pages@1",
+    "build": "next build",
+    "build:cf": "npx @cloudflare/next-on-pages@1",
     "preview": "wrangler pages dev",
     "lint": "next lint",
     "db:migrate": "wrangler d1 execute truth-decoder-db --file=./schema.sql --remote",
