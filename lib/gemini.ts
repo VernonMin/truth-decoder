@@ -1,4 +1,4 @@
-import type { DecodeResult } from '@/types';
+import type { DecodeResult, EncodeResult } from '@/types';
 
 const SYSTEM_PROMPT = `你是一个在职场混迹 30 年、极度毒舌、厌恶装 X、看透资本本质的"职场教父"。
 
@@ -52,6 +52,73 @@ const FEW_SHOT: { role: 'user' | 'assistant'; content: string }[] = [
     }),
   },
 ];
+
+const ENCODE_SYSTEM_PROMPT = `你是一名在500强企业摸爬滚打20年的"职场话术大师"，专门帮打工人把普通的周报/日报变成充满高大上职场黑话的"专业报告"，让老板看了觉得你极其牛逼。
+
+你的任务是把用户输入的普通工作汇报，翻译成充满职场黑话的"高端版本"。
+
+你必须严格输出以下 JSON 格式，不要有任何额外文字：
+
+{
+  "encoded": "充满职场黑话的完整报告版本（保留原始工作内容，只换成黑话表达）",
+  "buzzwords": ["使用的关键黑话1", "黑话2", "黑话3", "黑话4", "黑话5"],
+  "professionalScore": 1到5的整数,
+  "sarcasm": "对这段话术的一句黑色幽默毒舌点评"
+}
+
+可用黑话词库：赋能、闭环、颗粒度、抓手、杠杆、沉淀、复盘、打通、链路、方法论、顶层设计、生态、矩阵、赛道、对齐、价值创造、持续迭代、深度赋能、战略协同、业务抓手、降本增效、多元共振、核心引擎、全链路、系统性突破等。
+
+逼格评分标准：
+1星：只加了2个黑话，像素人  2星：有逼格，但用词太普通  3星：中规中矩的职场人  4星：让老板眼前一亮  5星：让老板怀疑你是MBA
+
+风格：认真执行任务，但用sarcasm字段悄悄揭露这些话的本质。`;
+
+const ENCODE_FEW_SHOT: { role: 'user' | 'assistant'; content: string }[] = [
+  { role: 'user', content: '今天修了3个bug，开了2个会，明天继续做新功能' },
+  {
+    role: 'assistant',
+    content: JSON.stringify({
+      encoded: '今日完成3个核心系统缺陷的闭环修复，赋能产品稳定性建设；参与2场跨部门对齐会议，深度打通业务链路；明日将持续迭代新功能模块，全力沉淀技术抓手，为业务增长夯实底层支撑。',
+      buzzwords: ['闭环', '赋能', '对齐', '链路', '沉淀'],
+      professionalScore: 4,
+      sarcasm: '修了3个bug，写成了企业战略报告。你不去当CEO真的可惜了。',
+    }),
+  },
+];
+
+export async function callDeepSeekEncode(input: string, apiKey: string): Promise<EncodeResult> {
+  const res = await fetch('https://api.deepseek.com/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      model: 'deepseek-chat',
+      messages: [
+        { role: 'system', content: ENCODE_SYSTEM_PROMPT },
+        ...ENCODE_FEW_SHOT,
+        { role: 'user', content: input },
+      ],
+      temperature: 0.85,
+      max_tokens: 1024,
+      response_format: { type: 'json_object' },
+    }),
+  });
+
+  if (!res.ok) {
+    const err = await res.text();
+    throw new Error(`DeepSeek API error ${res.status}: ${err}`);
+  }
+
+  const data = await res.json() as {
+    choices?: { message?: { content?: string } }[];
+  };
+  const text = data.choices?.[0]?.message?.content;
+  if (!text) throw new Error('Empty response from DeepSeek');
+
+  return JSON.parse(text) as EncodeResult;
+}
 
 export async function callDeepSeek(input: string, apiKey: string): Promise<DecodeResult> {
   const res = await fetch('https://api.deepseek.com/chat/completions', {

@@ -3,9 +3,9 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
 import { Zap, Download, AlertTriangle, Sparkles, Lock, Share2, Gift } from 'lucide-react';
 import { toPng } from 'html-to-image';
-import type { DecodeResult } from '@/types';
+import type { DecodeResult, EncodeResult } from '@/types';
 import DailyRanking from '@/components/DailyRanking';
-import TruthPoster from '@/components/TruthPoster';
+import TruthPoster, { EncodePoster } from '@/components/TruthPoster';
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://truth-decoder.pages.dev';
 
@@ -36,9 +36,13 @@ function getRefFromUrl(): string | null {
   return new URLSearchParams(window.location.search).get('ref');
 }
 
+type Mode = 'decode' | 'encode';
+
 export default function Home() {
+  const [mode, setMode] = useState<Mode>('decode');
   const [input, setInput] = useState('');
   const [result, setResult] = useState<DecodeResult | null>(null);
+  const [encodeResult, setEncodeResult] = useState<EncodeResult | null>(null);
   const [isDecoding, setIsDecoding] = useState(false);
   const [isUnlocked, setIsUnlocked] = useState(false);
   const [error, setError] = useState('');
@@ -47,6 +51,7 @@ export default function Home() {
   const [buddyInput, setBuddyInput] = useState('');
   const [buddyMsg, setBuddyMsg] = useState('');
   const posterRef = useRef<HTMLDivElement>(null);
+  const encodePosterRef = useRef<HTMLDivElement>(null);
 
   // 页面加载：检查 ref 参数 + 查询 buddy 状态
   useEffect(() => {
@@ -90,6 +95,49 @@ export default function Home() {
           }
         })
         .catch(() => {});
+    }
+  }, []);
+
+  const encodeReport = useCallback(async (text: string) => {
+    if (!text.trim()) return;
+    setIsDecoding(true);
+    setEncodeResult(null);
+    setError('');
+
+    if (navigator.vibrate) navigator.vibrate([80, 30, 80]);
+
+    try {
+      const res = await fetch('/api/encode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, sessionId: getSessionId() }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json() as { error?: string };
+        setError(data.error === 'RATE_LIMIT' ? '今日免费次数已用完，明天再来吧 👀' : '加密失败，请稍后重试');
+        return;
+      }
+
+      const data = await res.json() as EncodeResult;
+      setEncodeResult(data);
+    } catch {
+      setError('网络错误，请检查连接后重试');
+    } finally {
+      setIsDecoding(false);
+    }
+  }, []);
+
+  const generateEncodePoster = useCallback(async () => {
+    if (!encodePosterRef.current) return;
+    try {
+      const dataUrl = await toPng(encodePosterRef.current, { quality: 0.95, pixelRatio: 2 });
+      const link = document.createElement('a');
+      link.download = `职场话术加密证书.png`;
+      link.href = dataUrl;
+      link.click();
+    } catch {
+      alert('生成海报失败，请重试');
     }
   }, []);
 
@@ -161,6 +209,7 @@ export default function Home() {
   const reset = useCallback(() => {
     setInput('');
     setResult(null);
+    setEncodeResult(null);
     setError('');
   }, []);
 
@@ -179,18 +228,44 @@ export default function Home() {
       )}
 
       {/* Header */}
-      <header className="text-center mb-12 animate-fade-in">
+      <header className="text-center mb-8 animate-fade-in">
         <div className="flex items-center justify-center gap-3 mb-4">
           <AlertTriangle className="w-8 h-8 md:w-12 md:h-12 text-alert-red animate-pulse" />
           <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold neon-text">
-            职场黑话翻译站
+            {mode === 'decode' ? '职场黑话翻译站' : '职场话术加密站'}
           </h1>
           <AlertTriangle className="w-8 h-8 md:w-12 md:h-12 text-alert-red animate-pulse" />
         </div>
         <p className="text-sm md:text-lg text-neon-yellow/80 tracking-wider">
-          [ 撕碎职场假面，还你人间清醒 ]
+          {mode === 'decode' ? '[ 撕碎职场假面，还你人间清醒 ]' : '[ 白话变黑话，让老板看不懂你有多闲 ]'}
         </p>
       </header>
+
+      {/* 模式切换 */}
+      <div className="max-w-4xl mx-auto mb-8">
+        <div className="flex rounded-lg overflow-hidden border-2 border-neon-yellow/30">
+          <button
+            onClick={() => { setMode('decode'); reset(); }}
+            className={`flex-1 py-3 text-sm font-bold transition-all ${
+              mode === 'decode'
+                ? 'bg-neon-yellow text-black'
+                : 'bg-[#0a0a0a] text-neon-yellow/60 hover:text-neon-yellow hover:bg-neon-yellow/10'
+            }`}
+          >
+            🔍 解密模式 · 黑话→人话
+          </button>
+          <button
+            onClick={() => { setMode('encode'); reset(); }}
+            className={`flex-1 py-3 text-sm font-bold transition-all ${
+              mode === 'encode'
+                ? 'bg-neon-yellow text-black'
+                : 'bg-[#0a0a0a] text-neon-yellow/60 hover:text-neon-yellow hover:bg-neon-yellow/10'
+            }`}
+          >
+            ⚡ 加密模式 · 周报职场化
+          </button>
+        </div>
+      </div>
 
       {/* 真相码兑换入口（未解锁时显示） */}
       {!isUnlocked && (
@@ -225,7 +300,7 @@ export default function Home() {
           <textarea
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="粘贴那句让你想翻白眼的黑话..."
+            placeholder={mode === 'decode' ? '粘贴那句让你想翻白眼的黑话...' : '粘贴你的周报或日报（白话版），让 AI 帮你职场化...'}
             className="w-full h-40 md:h-48 bg-[#0a0a0a] border-2 border-neon-yellow/30 rounded-lg p-4 md:p-6 text-base md:text-lg text-neon-yellow placeholder-neon-yellow/40 focus:outline-none focus:border-neon-yellow transition-all resize-none"
             disabled={isDecoding}
           />
@@ -237,14 +312,14 @@ export default function Home() {
         {error && <div className="mt-3 text-alert-red text-sm text-center">{error}</div>}
 
         <button
-          onClick={() => decodeJargon(input)}
+          onClick={() => mode === 'decode' ? decodeJargon(input) : encodeReport(input)}
           disabled={isDecoding || !input.trim()}
           className="w-full mt-6 bg-neon-yellow text-black font-bold text-lg md:text-xl py-4 md:py-5 rounded-lg hover:bg-neon-yellow/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3 group"
         >
           {isDecoding ? (
-            <><Sparkles className="w-6 h-6 animate-spin" /><span>解密中...</span></>
+            <><Sparkles className="w-6 h-6 animate-spin" /><span>{mode === 'decode' ? '解密中...' : '加密中...'}</span></>
           ) : (
-            <><Zap className="w-6 h-6 group-hover:animate-pulse" /><span>解密真相</span></>
+            <><Zap className="w-6 h-6 group-hover:animate-pulse" /><span>{mode === 'decode' ? '解密真相' : '职场化！'}</span></>
           )}
         </button>
       </div>
@@ -262,14 +337,14 @@ export default function Home() {
                     style={{ animationDelay: `${i * 0.2}s` }} />
                 ))}
               </div>
-              <div className="text-sm text-neon-yellow/60">正在撕碎职场假面...</div>
+              <div className="text-sm text-neon-yellow/60">{mode === 'decode' ? '正在撕碎职场假面...' : '正在注入职场话术...'}</div>
             </div>
           </div>
         </div>
       )}
 
       {/* Results */}
-      {result && !isDecoding && (
+      {result && !isDecoding && mode === 'decode' && (
         <div className="max-w-4xl mx-auto space-y-6 animate-slide-up">
           <div className="bg-[#0a0a0a] border border-[#FF3B30]/50 rounded-lg p-6">
             <div className="flex items-center gap-2 mb-3">
@@ -358,6 +433,71 @@ export default function Home() {
         </div>
       )}
 
+      {/* 加密模式结果 */}
+      {encodeResult && !isDecoding && mode === 'encode' && (
+        <div className="max-w-4xl mx-auto space-y-6 animate-slide-up">
+          <div className="bg-[#0a0a0a] border border-neon-yellow/20 rounded-lg p-6">
+            <div className="flex items-center gap-2 mb-3">
+              <Zap className="w-5 h-5 text-neon-yellow/50" />
+              <h3 className="text-base font-bold text-neon-yellow/50">[ 原文（真实版） ]</h3>
+            </div>
+            <p className="text-white/50 text-sm leading-relaxed italic">{input}</p>
+          </div>
+
+          <div className="bg-[#0a0a0a] border-2 border-neon-yellow rounded-lg p-6 neon-border">
+            <div className="flex items-center gap-2 mb-3">
+              <Sparkles className="w-5 h-5 text-neon-yellow" />
+              <h3 className="text-lg font-bold text-neon-yellow">[ ⚡ 加密版（职场话术） ]</h3>
+            </div>
+            <p className="text-white text-base leading-relaxed font-semibold">{encodeResult.encoded}</p>
+          </div>
+
+          <div className="bg-[#0a0a0a] border border-neon-yellow/30 rounded-lg p-6">
+            <h3 className="text-base font-bold mb-3">[ 核心黑话关键词 ]</h3>
+            <div className="flex flex-wrap gap-2">
+              {encodeResult.buzzwords.map((w, i) => (
+                <span key={i} className="bg-neon-yellow/10 border border-neon-yellow/30 text-neon-yellow text-sm font-bold px-3 py-1 rounded">
+                  #{w}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-[#0a0a0a] border border-neon-yellow/30 rounded-lg p-6">
+            <h3 className="text-base font-bold mb-3">[ 逼格评分 ]</h3>
+            <div className="flex items-center gap-2">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className={`w-8 h-8 md:w-10 md:h-10 rounded border-2 flex items-center justify-center font-bold ${
+                  i < encodeResult.professionalScore
+                    ? 'bg-neon-yellow border-neon-yellow text-black'
+                    : 'border-neon-yellow/20 text-neon-yellow/20'
+                }`}>★</div>
+              ))}
+              <span className="ml-4 text-neon-yellow font-bold text-base">
+                {encodeResult.professionalScore >= 4 ? '让老板眼前一亮！' : encodeResult.professionalScore >= 3 ? '中规中矩' : '再加几个黑话'}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-neon-yellow rounded-lg p-5 text-center">
+            <p className="text-black font-bold text-base">{encodeResult.sarcasm}</p>
+          </div>
+
+          <div className="flex flex-col md:flex-row gap-4">
+            <button onClick={generateEncodePoster}
+              className="flex-1 bg-neon-yellow text-black font-bold py-4 rounded-lg hover:bg-neon-yellow/90 transition-all flex items-center justify-center gap-2">
+              <Share2 className="w-5 h-5" />
+              <span>生成加密证书 · 分享晒丑</span>
+            </button>
+            <button onClick={reset}
+              className="flex-1 bg-[#0a0a0a] border-2 border-neon-yellow text-neon-yellow font-bold py-4 rounded-lg hover:bg-neon-yellow/10 transition-all flex items-center justify-center gap-2">
+              <Sparkles className="w-5 h-5" />
+              <span>再加密一份</span>
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* 离屏海报（用于截图） */}
       {result && (
         <div ref={posterRef} className="fixed -left-[9999px]">
@@ -365,6 +505,17 @@ export default function Home() {
             input={input}
             result={result}
             truthCode={truthCode}
+            appUrl={APP_URL}
+          />
+        </div>
+      )}
+
+      {/* 离屏加密海报（用于截图） */}
+      {encodeResult && (
+        <div ref={encodePosterRef} className="fixed -left-[9999px]">
+          <EncodePoster
+            input={input}
+            result={encodeResult}
             appUrl={APP_URL}
           />
         </div>

@@ -24,6 +24,13 @@ export interface BuddyKey {
   usedAt: number | null;
 }
 
+export interface EncodeResult {
+  encoded: string;         // 职场化版本的报告
+  buzzwords: string[];     // 使用的关键黑话（最多5个）
+  professionalScore: number; // 1-5 逼格评分
+  sarcasm: string;         // 毒舌点评
+}
+
 export interface Env {
   PAY_SESSIONS: KVNamespace;
   DB: D1Database;
