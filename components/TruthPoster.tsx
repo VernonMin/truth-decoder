@@ -104,7 +104,7 @@ export default function TruthPoster({ input, result, appUrl }: Props) {
       {/* 底部黑条 */}
       <div style={{ background: '#0a0a0a', padding: '8px 24px', textAlign: 'center' }}>
         <span style={{ color: 'rgba(204,255,0,0.4)', fontSize: 10 }}>
-          真相码 7 天有效 · 每码限用一次 · 仅供娱乐
+          仅供娱乐，理性对待职场关系
         </span>
       </div>
     </div>
