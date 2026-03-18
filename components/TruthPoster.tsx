@@ -1,9 +1,12 @@
 import type { DecodeResult, EncodeResult } from '@/types';
 
+// ——— 解密模式海报（3:4 = 600×800） ———
+
 interface Props {
   input: string;
   result: DecodeResult;
-  appUrl: string;      // 例如 https://truth-decoder.pages.dev
+  appUrl: string;
+  qrDataUrl?: string;
 }
 
 const PUA_LABEL: Record<number, string> = {
@@ -14,109 +17,165 @@ const PUA_LABEL: Record<number, string> = {
   5: '极度危险',
 };
 
-// 离屏渲染海报，用 html-to-image 截图
-export default function TruthPoster({ input, result, appUrl }: Props) {
+export default function TruthPoster({ input, result, appUrl, qrDataUrl }: Props) {
   return (
-    <div
-      style={{
-        width: 600,
-        background: '#000',
-        fontFamily: 'Menlo, Monaco, Consolas, monospace',
-        padding: 0,
-      }}
-    >
-      {/* 顶部警示条 */}
-      <div style={{ background: '#FF3B30', padding: '10px 24px', display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div style={{
+      width: 600,
+      height: 800,
+      background: '#000000',
+      fontFamily: 'Menlo, Monaco, Consolas, monospace',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+    }}>
+      {/* 顶部：模式名称警示条 */}
+      <div style={{
+        background: '#FF3B30',
+        padding: '11px 24px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexShrink: 0,
+      }}>
         <span style={{ color: '#fff', fontWeight: 700, fontSize: 13, letterSpacing: 2 }}>
-          ⚠ 职场真相证书 · TRUTH CERTIFICATE
+          ⚠ 解密模式 · TRUTH CERTIFICATE
+        </span>
+        <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11 }}>
+          职场黑话翻译站
         </span>
       </div>
 
-      <div style={{ padding: '28px 32px', border: '2px solid #CCFF00', margin: '0 16px 0 16px' }}>
+      {/* 中间主体：对比文本区域 */}
+      <div style={{
+        flex: 1,
+        padding: '18px 20px',
+        border: '2px solid #CCFF00',
+        margin: '0 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 11,
+        overflow: 'hidden',
+      }}>
         {/* 标题 */}
-        <div style={{ textAlign: 'center', marginBottom: 24 }}>
-          <div style={{ color: '#CCFF00', fontSize: 26, fontWeight: 700, letterSpacing: 1,
-            textShadow: '0 0 10px #CCFF00' }}>
+        <div style={{ textAlign: 'center', paddingBottom: 4 }}>
+          <div style={{ color: '#CCFF00', fontSize: 22, fontWeight: 700, letterSpacing: 1,
+            textShadow: '0 0 12px rgba(204,255,0,0.8)' }}>
             职场黑话翻译站
           </div>
-          <div style={{ color: 'rgba(204,255,0,0.6)', fontSize: 11, marginTop: 4 }}>
+          <div style={{ color: 'rgba(204,255,0,0.5)', fontSize: 10, marginTop: 3 }}>
             撕碎职场假面，还你人间清醒
           </div>
         </div>
 
-        {/* 原文 */}
-        <div style={{ background: '#0a0a0a', border: '1px solid rgba(255,59,48,0.5)',
-          borderRadius: 8, padding: '12px 16px', marginBottom: 14 }}>
-          <div style={{ color: '#FF3B30', fontSize: 11, fontWeight: 700, marginBottom: 6 }}>
-            原文黑话
+        {/* 原文 vs 翻译 对比 */}
+        <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+          {/* 左：原文 */}
+          <div style={{ flex: 1, background: '#0a0a0a', border: '1px solid rgba(255,59,48,0.4)',
+            borderRadius: 8, padding: '10px 12px' }}>
+            <div style={{ color: '#FF3B30', fontSize: 9, fontWeight: 700, letterSpacing: 1, marginBottom: 5 }}>
+              原文黑话
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, lineHeight: 1.6,
+              overflow: 'hidden', maxHeight: 80 }}>
+              {input.slice(0, 60)}{input.length > 60 ? '...' : ''}
+            </div>
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.9)', fontSize: 15, lineHeight: 1.6 }}>
-            {input.slice(0, 80)}{input.length > 80 ? '...' : ''}
-          </div>
-        </div>
-
-        {/* 翻译 */}
-        <div style={{ background: '#0a0a0a', border: '2px solid #CCFF00',
-          borderRadius: 8, padding: '12px 16px', marginBottom: 14 }}>
-          <div style={{ color: '#CCFF00', fontSize: 11, fontWeight: 700, marginBottom: 6 }}>
-            人话翻译
-          </div>
-          <div style={{ color: '#fff', fontSize: 16, fontWeight: 700, lineHeight: 1.6 }}>
-            {result.translation}
+          {/* 右：翻译 */}
+          <div style={{ flex: 1, background: '#0a0a0a', border: '2px solid #CCFF00',
+            borderRadius: 8, padding: '10px 12px' }}>
+            <div style={{ color: '#CCFF00', fontSize: 9, fontWeight: 700, letterSpacing: 1, marginBottom: 5 }}>
+              ⚡ 人话翻译
+            </div>
+            <div style={{ color: '#ffffff', fontSize: 13, fontWeight: 700, lineHeight: 1.6,
+              overflow: 'hidden', maxHeight: 80 }}>
+              {result.translation}
+            </div>
           </div>
         </div>
 
         {/* PUA 等级 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 20 }}>
-          <span style={{ color: 'rgba(204,255,0,0.7)', fontSize: 12 }}>PUA 等级</span>
-          <div style={{ display: 'flex', gap: 4 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <span style={{ color: 'rgba(204,255,0,0.6)', fontSize: 11 }}>PUA 等级</span>
+          <div style={{ display: 'flex', gap: 3 }}>
             {[...Array(5)].map((_, i) => (
-              <span key={i} style={{
-                fontSize: 18,
-                color: i < result.puaLevel ? '#FF3B30' : '#333',
-              }}>★</span>
+              <span key={i} style={{ fontSize: 16, color: i < result.puaLevel ? '#FF3B30' : '#2a2a2a' }}>★</span>
             ))}
           </div>
-          <span style={{ color: '#FF3B30', fontSize: 12, fontWeight: 700 }}>
+          <span style={{ color: '#FF3B30', fontSize: 11, fontWeight: 700 }}>
             {PUA_LABEL[result.puaLevel] ?? ''}
           </span>
         </div>
 
-        {/* 金句 */}
-        <div style={{ background: '#CCFF00', borderRadius: 8, padding: '14px 20px',
-          textAlign: 'center', marginBottom: 20 }}>
-          <div style={{ color: '#000', fontSize: 15, fontWeight: 700 }}>
-            {result.quote}
+        {/* 老板心机 */}
+        <div style={{ background: '#0a0a0a', border: '1px solid rgba(204,255,0,0.15)',
+          borderRadius: 8, padding: '10px 12px', flex: 1, overflow: 'hidden' }}>
+          <div style={{ color: 'rgba(204,255,0,0.5)', fontSize: 9, fontWeight: 700,
+            letterSpacing: 1, marginBottom: 6 }}>
+            老板心机
+          </div>
+          <div style={{ color: 'rgba(255,255,255,0.75)', fontSize: 12, lineHeight: 1.65,
+            overflow: 'hidden' }}>
+            {result.bossIntention.slice(0, 120)}{result.bossIntention.length > 120 ? '...' : ''}
           </div>
         </div>
 
-        {/* 底部：URL */}
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ color: 'rgba(204,255,0,0.5)', fontSize: 10, marginBottom: 4 }}>
-            你的老板 PUA 等级是几星？
-          </div>
-          <div style={{ color: '#CCFF00', fontSize: 12 }}>
-            {appUrl}
+        {/* 动态金句 */}
+        <div style={{ background: '#CCFF00', borderRadius: 8, padding: '12px 16px',
+          textAlign: 'center', flexShrink: 0 }}>
+          <div style={{ color: '#000', fontSize: 14, fontWeight: 700, lineHeight: 1.5 }}>
+            {result.quote}
           </div>
         </div>
       </div>
 
-      {/* 底部黑条 */}
-      <div style={{ background: '#0a0a0a', padding: '8px 24px', textAlign: 'center' }}>
-        <span style={{ color: 'rgba(204,255,0,0.4)', fontSize: 10 }}>
-          仅供娱乐，理性对待职场关系
-        </span>
+      {/* 底部：水豚图标 + URL + 二维码 */}
+      <div style={{
+        height: 88,
+        padding: '0 20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexShrink: 0,
+      }}>
+        {/* 水豚 + 金句 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ fontSize: 32, lineHeight: 1 }}>🦛</div>
+          <div>
+            <div style={{ color: '#CCFF00', fontSize: 11, fontWeight: 700 }}>水豚精神</div>
+            <div style={{ color: 'rgba(204,255,0,0.45)', fontSize: 9, marginTop: 2 }}>
+              优雅摆烂，从我做起
+            </div>
+          </div>
+        </div>
+
+        {/* URL */}
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: 'rgba(204,255,0,0.35)', fontSize: 9, marginBottom: 2 }}>
+            你的老板 PUA 几星？
+          </div>
+          <div style={{ color: 'rgba(204,255,0,0.6)', fontSize: 10 }}>{appUrl}</div>
+        </div>
+
+        {/* 二维码 */}
+        {qrDataUrl && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+            <img src={qrDataUrl} width={60} height={60} alt="qr" style={{ display: 'block' }} />
+            <span style={{ color: 'rgba(204,255,0,0.35)', fontSize: 8 }}>扫码翻译黑话</span>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-// ——— 加密模式海报（黑金警示风） ———
+// ——— 加密模式海报（3:4 = 600×800，黑金警示风） ———
 
 interface EncodePosterProps {
   input: string;
   result: EncodeResult;
   appUrl: string;
+  qrDataUrl?: string;
+  sector?: string;
 }
 
 const SCORE_LABEL: Record<number, string> = {
@@ -127,79 +186,100 @@ const SCORE_LABEL: Record<number, string> = {
   5: 'MBA附体',
 };
 
-export function EncodePoster({ input, result, appUrl }: EncodePosterProps) {
+const SECTOR_LABEL: Record<string, string> = {
+  tech: '🖥️ 互联网风',
+  gov: '📋 体制内风',
+  insane: '🦛 水豚风',
+};
+
+export function EncodePoster({ input, result, appUrl, qrDataUrl, sector = 'tech' }: EncodePosterProps) {
   return (
-    <div
-      style={{
-        width: 600,
-        background: '#000000',
-        fontFamily: 'Menlo, Monaco, Consolas, monospace',
-        padding: 0,
-      }}
-    >
-      {/* 顶部金色警示条 */}
+    <div style={{
+      width: 600,
+      height: 800,
+      background: '#000000',
+      fontFamily: 'Menlo, Monaco, Consolas, monospace',
+      display: 'flex',
+      flexDirection: 'column',
+      overflow: 'hidden',
+    }}>
+      {/* 顶部：模式名称 */}
       <div style={{
         background: '#CCFF00',
-        padding: '10px 24px',
+        padding: '11px 24px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexShrink: 0,
       }}>
         <span style={{ color: '#000', fontWeight: 700, fontSize: 13, letterSpacing: 2 }}>
-          ⚡ 职场话术加密证书 · ENCODE CERTIFICATE
+          ⚡ 加密模式 · ENCODE CERTIFICATE
         </span>
         <span style={{ color: '#000', fontSize: 11, fontWeight: 700 }}>
-          逼格值 {'★'.repeat(result.professionalScore)}{'☆'.repeat(5 - result.professionalScore)}
+          {SECTOR_LABEL[sector] ?? '互联网风'}
         </span>
       </div>
 
-      <div style={{ padding: '24px 28px', border: '2px solid #CCFF00', margin: '0 16px' }}>
+      {/* 中间主体：对比文本 */}
+      <div style={{
+        flex: 1,
+        padding: '18px 20px',
+        border: '2px solid #CCFF00',
+        margin: '0 14px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: 11,
+        overflow: 'hidden',
+      }}>
         {/* 标题 */}
-        <div style={{ textAlign: 'center', marginBottom: 20 }}>
+        <div style={{ textAlign: 'center', paddingBottom: 4 }}>
           <div style={{ color: '#CCFF00', fontSize: 22, fontWeight: 700, letterSpacing: 1,
-            textShadow: '0 0 10px rgba(204,255,0,0.6)' }}>
+            textShadow: '0 0 12px rgba(204,255,0,0.6)' }}>
             职场话术加密站
           </div>
-          <div style={{ color: 'rgba(204,255,0,0.5)', fontSize: 11, marginTop: 4 }}>
+          <div style={{ color: 'rgba(204,255,0,0.5)', fontSize: 10, marginTop: 3 }}>
             白话变黑话，让老板看不懂你有多闲
           </div>
         </div>
 
-        {/* 原文 */}
-        <div style={{ background: '#0a0a0a', border: '1px solid rgba(204,255,0,0.3)',
-          borderRadius: 8, padding: '12px 16px', marginBottom: 12 }}>
-          <div style={{ color: 'rgba(204,255,0,0.6)', fontSize: 10, fontWeight: 700,
-            letterSpacing: 1, marginBottom: 6 }}>
-            原文（真实版）
+        {/* 原文 vs 加密版 对比 */}
+        <div style={{ display: 'flex', gap: 10, flexShrink: 0 }}>
+          {/* 左：原文 */}
+          <div style={{ flex: 1, background: '#0a0a0a', border: '1px solid rgba(204,255,0,0.2)',
+            borderRadius: 8, padding: '10px 12px' }}>
+            <div style={{ color: 'rgba(204,255,0,0.5)', fontSize: 9, fontWeight: 700,
+              letterSpacing: 1, marginBottom: 5 }}>
+              原文（真实版）
+            </div>
+            <div style={{ color: 'rgba(255,255,255,0.55)', fontSize: 12, lineHeight: 1.6,
+              fontStyle: 'italic', overflow: 'hidden', maxHeight: 80 }}>
+              {input.slice(0, 60)}{input.length > 60 ? '...' : ''}
+            </div>
           </div>
-          <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, lineHeight: 1.6,
-            fontStyle: 'italic' }}>
-            {input.slice(0, 100)}{input.length > 100 ? '...' : ''}
+          {/* 右：加密版 */}
+          <div style={{ flex: 1, background: '#0d0d0d', border: '2px solid #CCFF00',
+            borderRadius: 8, padding: '10px 12px' }}>
+            <div style={{ color: '#CCFF00', fontSize: 9, fontWeight: 700,
+              letterSpacing: 1, marginBottom: 5 }}>
+              ⚡ 加密版
+            </div>
+            <div style={{ color: '#ffffff', fontSize: 12, fontWeight: 600, lineHeight: 1.6,
+              overflow: 'hidden', maxHeight: 80 }}>
+              {result.encoded.slice(0, 80)}{result.encoded.length > 80 ? '...' : ''}
+            </div>
           </div>
         </div>
 
-        {/* 加密后的黑话版本 */}
-        <div style={{ background: '#0d0d0d', border: '2px solid #CCFF00',
-          borderRadius: 8, padding: '14px 16px', marginBottom: 14 }}>
-          <div style={{ color: '#CCFF00', fontSize: 10, fontWeight: 700,
-            letterSpacing: 1, marginBottom: 8 }}>
-            ⚡ 加密版（职场话术）
-          </div>
-          <div style={{ color: '#ffffff', fontSize: 14, fontWeight: 600, lineHeight: 1.8 }}>
-            {result.encoded}
-          </div>
-        </div>
-
-        {/* 关键黑话词 */}
-        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 14 }}>
+        {/* 关键黑话标签 */}
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, flexShrink: 0 }}>
           {result.buzzwords.slice(0, 5).map((word, i) => (
             <span key={i} style={{
-              background: 'rgba(204,255,0,0.12)',
-              border: '1px solid rgba(204,255,0,0.4)',
+              background: 'rgba(204,255,0,0.1)',
+              border: '1px solid rgba(204,255,0,0.35)',
               borderRadius: 4,
-              padding: '3px 10px',
+              padding: '3px 9px',
               color: '#CCFF00',
-              fontSize: 12,
+              fontSize: 11,
               fontWeight: 700,
             }}>
               #{word}
@@ -207,49 +287,73 @@ export function EncodePoster({ input, result, appUrl }: EncodePosterProps) {
           ))}
         </div>
 
-        {/* 逼格评分 + 等级 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 18 }}>
+        {/* 逼格评分 */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
           <span style={{ color: 'rgba(204,255,0,0.6)', fontSize: 11 }}>逼格等级</span>
-          <div style={{ display: 'flex', gap: 4 }}>
+          <div style={{ display: 'flex', gap: 3 }}>
             {[...Array(5)].map((_, i) => (
-              <span key={i} style={{
-                fontSize: 16,
-                color: i < result.professionalScore ? '#CCFF00' : '#222',
-              }}>★</span>
+              <span key={i} style={{ fontSize: 16, color: i < result.professionalScore ? '#CCFF00' : '#1a1a1a' }}>★</span>
             ))}
           </div>
-          <span style={{ color: '#CCFF00', fontSize: 12, fontWeight: 700 }}>
+          <span style={{ color: '#CCFF00', fontSize: 11, fontWeight: 700 }}>
             {SCORE_LABEL[result.professionalScore] ?? ''}
           </span>
         </div>
 
-        {/* 毒舌点评 */}
-        <div style={{
-          background: '#CCFF00',
-          borderRadius: 8,
-          padding: '12px 18px',
-          textAlign: 'center',
-          marginBottom: 18,
-        }}>
-          <div style={{ color: '#000', fontSize: 13, fontWeight: 700 }}>
+        {/* 完整加密版 */}
+        <div style={{ background: '#0a0a0a', border: '1px solid rgba(204,255,0,0.15)',
+          borderRadius: 8, padding: '10px 12px', flex: 1, overflow: 'hidden' }}>
+          <div style={{ color: 'rgba(204,255,0,0.5)', fontSize: 9, fontWeight: 700,
+            letterSpacing: 1, marginBottom: 6 }}>
+            完整加密版
+          </div>
+          <div style={{ color: 'rgba(255,255,255,0.8)', fontSize: 11, lineHeight: 1.7,
+            overflow: 'hidden' }}>
+            {result.encoded.slice(0, 200)}{result.encoded.length > 200 ? '...' : ''}
+          </div>
+        </div>
+
+        {/* 毒舌点评（动态金句） */}
+        <div style={{ background: '#CCFF00', borderRadius: 8, padding: '12px 16px',
+          textAlign: 'center', flexShrink: 0 }}>
+          <div style={{ color: '#000', fontSize: 13, fontWeight: 700, lineHeight: 1.5 }}>
             {result.sarcasm}
           </div>
         </div>
-
-        {/* 底部 URL */}
-        <div style={{ textAlign: 'right' }}>
-          <div style={{ color: 'rgba(204,255,0,0.4)', fontSize: 10, marginBottom: 3 }}>
-            你的报告也能职场化？
-          </div>
-          <div style={{ color: '#CCFF00', fontSize: 11 }}>{appUrl}</div>
-        </div>
       </div>
 
-      {/* 底部条 */}
-      <div style={{ background: '#0a0a0a', padding: '8px 24px', textAlign: 'center' }}>
-        <span style={{ color: 'rgba(204,255,0,0.35)', fontSize: 10 }}>
-          以上话术纯属娱乐 · 请勿直接发给老板 · 后果自负
-        </span>
+      {/* 底部：水豚图标 + URL + 二维码 */}
+      <div style={{
+        height: 88,
+        padding: '0 20px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexShrink: 0,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ fontSize: 32, lineHeight: 1 }}>🦛</div>
+          <div>
+            <div style={{ color: '#CCFF00', fontSize: 11, fontWeight: 700 }}>水豚精神</div>
+            <div style={{ color: 'rgba(204,255,0,0.45)', fontSize: 9, marginTop: 2 }}>
+              以上话术纯属娱乐 · 后果自负
+            </div>
+          </div>
+        </div>
+
+        <div style={{ textAlign: 'center' }}>
+          <div style={{ color: 'rgba(204,255,0,0.35)', fontSize: 9, marginBottom: 2 }}>
+            你的报告也能职场化？
+          </div>
+          <div style={{ color: 'rgba(204,255,0,0.6)', fontSize: 10 }}>{appUrl}</div>
+        </div>
+
+        {qrDataUrl && (
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+            <img src={qrDataUrl} width={60} height={60} alt="qr" style={{ display: 'block' }} />
+            <span style={{ color: 'rgba(204,255,0,0.35)', fontSize: 8 }}>扫码加密报告</span>
+          </div>
+        )}
       </div>
     </div>
   );

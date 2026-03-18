@@ -41,9 +41,22 @@ export default function Home() {
   const [encodeResult, setEncodeResult] = useState<EncodeResult | null>(null);
   const [isDecoding, setIsDecoding] = useState(false);
   const [error, setError] = useState('');
+  const [qrDataUrl, setQrDataUrl] = useState('');
+  const [saveDataUrl, setSaveDataUrl] = useState('');
   const posterRef = useRef<HTMLDivElement>(null);
   const encodePosterRef = useRef<HTMLDivElement>(null);
 
+  // 有结果时生成二维码
+  useEffect(() => {
+    if (!result && !encodeResult) return;
+    import('qrcode').then(QRCode => {
+      QRCode.default.toDataURL(APP_URL, {
+        width: 80,
+        margin: 1,
+        color: { dark: '#CCFF00', light: '#000000' },
+      }).then(url => setQrDataUrl(url)).catch(() => {});
+    });
+  }, [result, encodeResult]);
 
   const encodeReport = useCallback(async (text: string) => {
     if (!text.trim()) return;
@@ -79,10 +92,7 @@ export default function Home() {
     if (!encodePosterRef.current) return;
     try {
       const dataUrl = await toPng(encodePosterRef.current, { quality: 0.95, pixelRatio: 2 });
-      const link = document.createElement('a');
-      link.download = `职场话术加密证书.png`;
-      link.href = dataUrl;
-      link.click();
+      setSaveDataUrl(dataUrl);
     } catch {
       alert('生成海报失败，请重试');
     }
@@ -127,10 +137,7 @@ export default function Home() {
     if (!posterRef.current) return;
     try {
       const dataUrl = await toPng(posterRef.current, { quality: 0.95, pixelRatio: 2 });
-      const link = document.createElement('a');
-      link.download = `职场真相证书.png`;
-      link.href = dataUrl;
-      link.click();
+      setSaveDataUrl(dataUrl);
     } catch {
       alert('生成海报失败，请重试');
     }
@@ -405,6 +412,7 @@ export default function Home() {
             input={input}
             result={result}
             appUrl={APP_URL}
+            qrDataUrl={qrDataUrl}
           />
         </div>
       )}
@@ -416,7 +424,43 @@ export default function Home() {
             input={input}
             result={encodeResult}
             appUrl={APP_URL}
+            qrDataUrl={qrDataUrl}
+            sector={sector}
           />
+        </div>
+      )}
+
+      {/* 保存弹窗 */}
+      {saveDataUrl && (
+        <div
+          className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-black/95 p-4"
+          onClick={() => setSaveDataUrl('')}
+        >
+          <div className="max-w-sm w-full flex flex-col items-center gap-4" onClick={e => e.stopPropagation()}>
+            <p className="text-neon-yellow font-bold text-base tracking-wide">📱 长按图片保存</p>
+            <img
+              src={saveDataUrl}
+              alt="职场证书"
+              className="w-full rounded-lg shadow-2xl"
+              style={{ maxHeight: '65vh', objectFit: 'contain' }}
+            />
+            <p className="text-neon-yellow/60 text-sm text-center">长按图片 → 保存到相册 → 分享至小红书 / 朋友圈</p>
+            <div className="flex gap-3 w-full">
+              <a
+                href={saveDataUrl}
+                download="职场证书.png"
+                className="flex-1 bg-neon-yellow text-black font-bold py-3 rounded-lg text-sm text-center hover:bg-neon-yellow/90 transition-all"
+              >
+                电脑下载
+              </a>
+              <button
+                onClick={() => setSaveDataUrl('')}
+                className="flex-1 bg-[#1a1a1a] border border-neon-yellow/30 text-neon-yellow/70 font-bold py-3 rounded-lg text-sm hover:bg-neon-yellow/10 transition-all"
+              >
+                关闭
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
