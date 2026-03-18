@@ -128,7 +128,7 @@ export default function TruthPoster({ input, result, appUrl, qrDataUrl }: Props)
         </div>
       </div>
 
-      {/* 底部：水豚图标 + URL + 二维码 */}
+      {/* 底部：URL（左） + 水豚判官（居中） + 二维码（右） */}
       <div style={{
         height: 88,
         padding: '0 20px',
@@ -137,26 +137,21 @@ export default function TruthPoster({ input, result, appUrl, qrDataUrl }: Props)
         justifyContent: 'space-between',
         flexShrink: 0,
       }}>
-        {/* 水豚 + 金句 */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ fontSize: 32, lineHeight: 1 }}>🦛</div>
-          <div>
-            <div style={{ color: '#CCFF00', fontSize: 11, fontWeight: 700 }}>水豚精神</div>
-            <div style={{ color: 'rgba(204,255,0,0.45)', fontSize: 9, marginTop: 2 }}>
-              优雅摆烂，从我做起
-            </div>
-          </div>
-        </div>
-
-        {/* URL */}
-        <div style={{ textAlign: 'center' }}>
+        {/* 左：URL */}
+        <div>
           <div style={{ color: 'rgba(204,255,0,0.35)', fontSize: 9, marginBottom: 2 }}>
             你的老板 PUA 几星？
           </div>
           <div style={{ color: 'rgba(204,255,0,0.6)', fontSize: 10 }}>{appUrl}</div>
         </div>
 
-        {/* 二维码 */}
+        {/* 中：水豚判官 */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+          <div style={{ fontSize: 28, lineHeight: 1 }}>🦛⚖️</div>
+          <div style={{ color: '#CCFF00', fontSize: 9, fontWeight: 700, letterSpacing: 1 }}>水豚判官</div>
+        </div>
+
+        {/* 右：二维码 */}
         {qrDataUrl && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
             <img src={qrDataUrl} width={60} height={60} alt="qr" style={{ display: 'block' }} />
@@ -322,7 +317,7 @@ export function EncodePoster({ input, result, appUrl, qrDataUrl, sector = 'tech'
         </div>
       </div>
 
-      {/* 底部：水豚图标 + URL + 二维码 */}
+      {/* 底部：URL（左） + 水豚判官（居中） + 二维码（右） */}
       <div style={{
         height: 88,
         padding: '0 20px',
@@ -331,23 +326,21 @@ export function EncodePoster({ input, result, appUrl, qrDataUrl, sector = 'tech'
         justifyContent: 'space-between',
         flexShrink: 0,
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ fontSize: 32, lineHeight: 1 }}>🦛</div>
-          <div>
-            <div style={{ color: '#CCFF00', fontSize: 11, fontWeight: 700 }}>水豚精神</div>
-            <div style={{ color: 'rgba(204,255,0,0.45)', fontSize: 9, marginTop: 2 }}>
-              以上话术纯属娱乐 · 后果自负
-            </div>
-          </div>
-        </div>
-
-        <div style={{ textAlign: 'center' }}>
+        {/* 左：URL */}
+        <div>
           <div style={{ color: 'rgba(204,255,0,0.35)', fontSize: 9, marginBottom: 2 }}>
             你的报告也能职场化？
           </div>
           <div style={{ color: 'rgba(204,255,0,0.6)', fontSize: 10 }}>{appUrl}</div>
         </div>
 
+        {/* 中：水豚判官 */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
+          <div style={{ fontSize: 28, lineHeight: 1 }}>🦛⚖️</div>
+          <div style={{ color: '#CCFF00', fontSize: 9, fontWeight: 700, letterSpacing: 1 }}>水豚判官</div>
+        </div>
+
+        {/* 右：二维码 */}
         {qrDataUrl && (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3 }}>
             <img src={qrDataUrl} width={60} height={60} alt="qr" style={{ display: 'block' }} />

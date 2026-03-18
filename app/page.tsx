@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
 import { Zap, AlertTriangle, Sparkles, Share2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import type { DecodeResult, EncodeResult } from '@/types';
@@ -33,6 +33,47 @@ function getSessionId(): string {
 
 type Mode = 'decode' | 'encode';
 
+const RAIN_CHARS = '01アイウエオカキクサシスセタチナニノハヒフ∆∇⊕⊗#$%&□■◆◇'.split('');
+
+function CharacterRain({ mode }: { mode: Mode }) {
+  const columns = useMemo(() =>
+    [...Array(22)].map(() => ({
+      chars: [...Array(10)].map(() => RAIN_CHARS[Math.floor(Math.random() * RAIN_CHARS.length)]),
+      delay: Math.random() * 0.9,
+      duration: 1.0 + Math.random() * 0.8,
+    })), []
+  );
+  return (
+    <div className="max-w-4xl mx-auto mb-12">
+      <style>{`@keyframes charFall{from{transform:translateY(-140px)}to{transform:translateY(220px)}}`}</style>
+      <div style={{ position: 'relative', height: 192, overflow: 'hidden', background: '#0a0a0a', borderRadius: 8, border: '1px solid rgba(204,255,0,0.3)' }}>
+        {columns.map((col, i) => (
+          <div key={i} style={{
+            position: 'absolute',
+            left: `${(i / 22) * 100}%`,
+            animation: `charFall ${col.duration}s linear ${col.delay}s infinite`,
+            fontFamily: 'monospace', fontSize: 13, lineHeight: '20px', color: '#CCFF00',
+          }}>
+            {col.chars.map((c, j) => (
+              <div key={j} style={{ opacity: Math.max(0, 1 - j * 0.1) }}>{c}</div>
+            ))}
+          </div>
+        ))}
+        <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'radial-gradient(circle, rgba(0,0,0,0.8) 35%, transparent)' }}>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ color: '#CCFF00', fontSize: 22, fontWeight: 700, textShadow: '0 0 10px #CCFF00', letterSpacing: 2 }}>
+              {mode === 'decode' ? '[ 解析中 ]' : '[ 加密中 ]'}
+            </div>
+            <div style={{ color: 'rgba(204,255,0,0.6)', fontSize: 12, marginTop: 8 }}>
+              {mode === 'decode' ? '正在撕碎职场假面...' : '正在注入职场话术...'}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Home() {
   const [mode, setMode] = useState<Mode>('decode');
   const [sector, setSector] = useState<EncodeSector>('tech');
@@ -43,14 +84,16 @@ export default function Home() {
   const [error, setError] = useState('');
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [saveDataUrl, setSaveDataUrl] = useState('');
+  const [copied, setCopied] = useState(false);
   const posterRef = useRef<HTMLDivElement>(null);
   const encodePosterRef = useRef<HTMLDivElement>(null);
 
-  // 有结果时生成二维码
+  // 有结果时生成带 referral_id 的二维码
   useEffect(() => {
     if (!result && !encodeResult) return;
+    const qrUrl = `${APP_URL}?ref=${getSessionId()}`;
     import('qrcode').then(QRCode => {
-      QRCode.default.toDataURL(APP_URL, {
+      QRCode.default.toDataURL(qrUrl, {
         width: 80,
         margin: 1,
         color: { dark: '#CCFF00', light: '#000000' },
@@ -66,18 +109,18 @@ export default function Home() {
 
     if (navigator.vibrate) navigator.vibrate([80, 30, 80]);
 
+    const minDelay = new Promise<void>(r => setTimeout(r, 1500));
     try {
-      const res = await fetch('/api/encode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, sessionId: getSessionId(), sector }),
-      });
+      const [res] = await Promise.all([
+        fetch('/api/encode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, sessionId: getSessionId(), sector }),
+        }),
+        minDelay,
+      ]);
 
-      if (!res.ok) {
-        const data = await res.json() as { error?: string };
-        setError('加密失败，请稍后重试');
-        return;
-      }
+      if (!res.ok) { setError('加密失败，请稍后重试'); return; }
 
       const data = await res.json() as EncodeResult;
       setEncodeResult(data);
@@ -86,7 +129,7 @@ export default function Home() {
     } finally {
       setIsDecoding(false);
     }
-  }, []);
+  }, [sector]);
 
   const generateEncodePoster = useCallback(async () => {
     if (!encodePosterRef.current) return;
@@ -107,18 +150,18 @@ export default function Home() {
 
     if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
+    const minDelay = new Promise<void>(r => setTimeout(r, 1500));
     try {
-      const res = await fetch('/api/decode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, sessionId: getSessionId() }),
-      });
+      const [res] = await Promise.all([
+        fetch('/api/decode', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, sessionId: getSessionId() }),
+        }),
+        minDelay,
+      ]);
 
-      if (!res.ok) {
-        const data = await res.json() as { error?: string };
-        setError('解密失败，请稍后重试');
-        return;
-      }
+      if (!res.ok) { setError('解密失败，请稍后重试'); return; }
 
       const data = await res.json() as DecodeResult;
       setResult({
@@ -252,24 +295,8 @@ export default function Home() {
         </button>
       </div>
 
-      {/* Scanning animation */}
-      {isDecoding && (
-        <div className="max-w-4xl mx-auto mb-12 animate-pulse">
-          <div className="bg-[#0a0a0a] border border-neon-yellow/30 rounded-lg p-8 relative overflow-hidden">
-            <div className="scan-line" />
-            <div className="text-center space-y-4">
-              <div className="text-2xl neon-text">[ 数据流扫描中 ]</div>
-              <div className="flex justify-center gap-2">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="w-3 h-3 bg-neon-yellow rounded-full animate-pulse"
-                    style={{ animationDelay: `${i * 0.2}s` }} />
-                ))}
-              </div>
-              <div className="text-sm text-neon-yellow/60">{mode === 'decode' ? '正在撕碎职场假面...' : '正在注入职场话术...'}</div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* 字符雨加载动效 */}
+      {isDecoding && <CharacterRain mode={mode} />}
 
       {/* Results */}
       {result && !isDecoding && mode === 'decode' && (
@@ -330,7 +357,7 @@ export default function Home() {
             <button onClick={generatePoster}
               className="flex-1 bg-neon-yellow text-black font-bold py-4 rounded-lg hover:bg-neon-yellow/90 transition-all flex items-center justify-center gap-2">
               <Share2 className="w-5 h-5" />
-              <span>生成真相证书 · 分享裂变</span>
+              <span>生成真相证书</span>
             </button>
             <button onClick={reset}
               className="flex-1 bg-[#0a0a0a] border-2 border-neon-yellow text-neon-yellow font-bold py-4 rounded-lg hover:bg-neon-yellow/10 transition-all flex items-center justify-center gap-2">
@@ -354,9 +381,17 @@ export default function Home() {
           </div>
 
           <div className="bg-[#0a0a0a] border-2 border-neon-yellow rounded-lg p-6 neon-border">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles className="w-5 h-5 text-neon-yellow" />
-              <h3 className="text-lg font-bold text-neon-yellow">[ ⚡ 加密版（职场话术） ]</h3>
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-neon-yellow" />
+                <h3 className="text-lg font-bold text-neon-yellow">[ ⚡ 加密版（职场话术） ]</h3>
+              </div>
+              <button
+                onClick={() => navigator.clipboard.writeText(encodeResult.encoded).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); })}
+                className={`flex-shrink-0 px-4 py-1.5 rounded text-sm font-bold transition-all ${copied ? 'bg-green-400/20 border border-green-400 text-green-400' : 'bg-neon-yellow text-black hover:bg-neon-yellow/80'}`}
+              >
+                {copied ? '✅ 已复制' : '📋 一键复制'}
+              </button>
             </div>
             <p className="text-white text-base leading-relaxed font-semibold">{encodeResult.encoded}</p>
           </div>
@@ -476,6 +511,7 @@ export default function Home() {
         <p className="mb-2">职场没有真情，只有颗粒度</p>
         <p className="mb-4">推开这扇门，撕碎这张饼</p>
         <p className="text-xs">本产品仅供娱乐和情绪价值，请理性对待职场关系</p>
+        <p className="text-xs text-gray-600 mt-3">免责声明：内容由 AI 生成，仅供娱乐，不构成任何职业建议，不代表任何立场。</p>
       </footer>
     </div>
   );
