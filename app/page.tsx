@@ -4,6 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Zap, Download, AlertTriangle, Sparkles, Lock } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import type { DecodeResult } from '@/types';
+import DailyRanking from '@/components/DailyRanking';
 
 const VIRAL_QUOTES = [
   '工作是换钱的，不是换命的。',
@@ -319,6 +320,8 @@ export default function Home() {
       )}
 
       {/* Footer */}
+      <DailyRanking sessionId={getSessionId()} />
+
       <footer className="max-w-4xl mx-auto mt-16 mb-8 text-center text-neon-yellow/50 text-sm">
         <p className="mb-2">职场没有真情，只有颗粒度</p>
         <p className="mb-4">推开这扇门，撕碎这张饼</p>

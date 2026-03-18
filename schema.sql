@@ -27,5 +27,26 @@ CREATE TABLE IF NOT EXISTS payment_records (
   created_at  TEXT    NOT NULL DEFAULT (datetime('now'))
 );
 
+-- 每日黑话热榜：按天聚合翻译次数 + 点赞数
+CREATE TABLE IF NOT EXISTS jargon_stats (
+  id          INTEGER PRIMARY KEY AUTOINCREMENT,
+  date        TEXT    NOT NULL,              -- YYYY-MM-DD
+  input_text  TEXT    NOT NULL,
+  pua_level   INTEGER NOT NULL DEFAULT 0,
+  decode_count INTEGER NOT NULL DEFAULT 1,  -- 被翻译次数
+  like_count  INTEGER NOT NULL DEFAULT 0,   -- 点赞数
+  UNIQUE(date, input_text)
+);
+
+-- 防止同一 session 重复点赞
+CREATE TABLE IF NOT EXISTS jargon_likes (
+  session_id  TEXT NOT NULL,
+  date        TEXT NOT NULL,
+  input_text  TEXT NOT NULL,
+  PRIMARY KEY (session_id, date, input_text)
+);
+
 CREATE INDEX IF NOT EXISTS idx_decode_logs_session ON decode_logs(session_id, created_at);
 CREATE INDEX IF NOT EXISTS idx_payment_records_session ON payment_records(session_id);
+CREATE INDEX IF NOT EXISTS idx_jargon_stats_date ON jargon_stats(date, decode_count DESC);
+
