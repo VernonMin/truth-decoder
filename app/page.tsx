@@ -91,9 +91,10 @@ export default function Home() {
   const generateEncodePoster = useCallback(async () => {
     if (!encodePosterRef.current) return;
     try {
-      const dataUrl = await toPng(encodePosterRef.current, { quality: 0.95, pixelRatio: 2 });
+      const dataUrl = await toPng(encodePosterRef.current, { quality: 0.95, pixelRatio: 2, width: 600, height: 800 });
       setSaveDataUrl(dataUrl);
-    } catch {
+    } catch (e) {
+      console.error('海报生成失败', e);
       alert('生成海报失败，请重试');
     }
   }, []);
@@ -136,9 +137,10 @@ export default function Home() {
   const generatePoster = useCallback(async () => {
     if (!posterRef.current) return;
     try {
-      const dataUrl = await toPng(posterRef.current, { quality: 0.95, pixelRatio: 2 });
+      const dataUrl = await toPng(posterRef.current, { quality: 0.95, pixelRatio: 2, width: 600, height: 800 });
       setSaveDataUrl(dataUrl);
-    } catch {
+    } catch (e) {
+      console.error('海报生成失败', e);
       alert('生成海报失败，请重试');
     }
   }, []);
@@ -406,29 +408,33 @@ export default function Home() {
       )}
 
       {/* 离屏海报（用于截图） */}
-      {result && (
-        <div ref={posterRef} className="fixed -left-[9999px]">
-          <TruthPoster
-            input={input}
-            result={result}
-            appUrl={APP_URL}
-            qrDataUrl={qrDataUrl}
-          />
-        </div>
-      )}
+      <div style={{ position: 'absolute', top: 0, left: '-9999px', width: 600, height: 800, overflow: 'hidden', pointerEvents: 'none' }}>
+        {result && (
+          <div ref={posterRef}>
+            <TruthPoster
+              input={input}
+              result={result}
+              appUrl={APP_URL}
+              qrDataUrl={qrDataUrl}
+            />
+          </div>
+        )}
+      </div>
 
       {/* 离屏加密海报（用于截图） */}
-      {encodeResult && (
-        <div ref={encodePosterRef} className="fixed -left-[9999px]">
-          <EncodePoster
-            input={input}
-            result={encodeResult}
-            appUrl={APP_URL}
-            qrDataUrl={qrDataUrl}
-            sector={sector}
-          />
-        </div>
-      )}
+      <div style={{ position: 'absolute', top: 0, left: '-9999px', width: 600, height: 800, overflow: 'hidden', pointerEvents: 'none' }}>
+        {encodeResult && (
+          <div ref={encodePosterRef}>
+            <EncodePoster
+              input={input}
+              result={encodeResult}
+              appUrl={APP_URL}
+              qrDataUrl={qrDataUrl}
+              sector={sector}
+            />
+          </div>
+        )}
+      </div>
 
       {/* 保存弹窗 */}
       {saveDataUrl && (
