@@ -1,6 +1,6 @@
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { verifyMianbaoduo } from '@/lib/payment';
-import { setPaySession } from '@/lib/kv';
+import { setPaySession, createBuddyKey } from '@/lib/kv';
 import type { Env, PaySession } from '@/types';
 
 export const runtime = 'edge';
@@ -21,18 +21,21 @@ export async function POST(request: Request) {
   const sessionId = params.get('custom') ?? '';
   const tradeStatus = params.get('trade_status');
   const totalFee = Number(params.get('total_fee') ?? 0);
+  // 面包多下单时可在备注字段传入用户昵称，格式：sessionId|昵称
+  const [, ownerName] = sessionId.split('|');
 
   if (tradeStatus === 'TRADE_SUCCESS' && orderId && sessionId) {
+    const pureSessionId = sessionId.split('|')[0];
     const session: PaySession = { orderId, paidAt: Date.now() };
 
-    await setPaySession(typedEnv.PAY_SESSIONS, sessionId, session);
-
-    await typedEnv.DB.prepare(
-      `INSERT OR REPLACE INTO payment_records (order_id, session_id, amount, status, paid_at)
-       VALUES (?, ?, ?, 'paid', datetime('now'))`
-    )
-      .bind(orderId, sessionId, totalFee)
-      .run();
+    await Promise.all([
+      setPaySession(typedEnv.PAY_SESSIONS, pureSessionId, session),
+      createBuddyKey(typedEnv.PAY_SESSIONS, pureSessionId, ownerName ?? '匿名打工人'),
+      typedEnv.DB.prepare(
+        `INSERT OR REPLACE INTO payment_records (order_id, session_id, amount, status, paid_at)
+         VALUES (?, ?, ?, 'paid', datetime('now'))`
+      ).bind(orderId, pureSessionId, totalFee).run(),
+    ]);
   }
 
   return new Response('success');
