@@ -8,7 +8,7 @@ import type { EncodeSector } from '@/lib/gemini';
 import DailyRanking from '@/components/DailyRanking';
 import TruthPoster, { EncodePoster } from '@/components/TruthPoster';
 
-const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://truth-decoder.pages.dev';
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? 'https://td.vedi0.com';
 
 const VIRAL_QUOTES = [
   '工作是换钱的，不是换命的。',
