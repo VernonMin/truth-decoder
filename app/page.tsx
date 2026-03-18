@@ -62,7 +62,7 @@ export default function Home() {
 
       if (!res.ok) {
         const data = await res.json() as { error?: string };
-        setError(data.error === 'RATE_LIMIT' ? '今日免费次数已用完，明天再来吧 👀' : '加密失败，请稍后重试');
+        setError('加密失败，请稍后重试');
         return;
       }
 
