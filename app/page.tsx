@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Zap, AlertTriangle, Sparkles, Share2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import type { DecodeResult, EncodeResult } from '@/types';
+import type { EncodeSector } from '@/lib/gemini';
 import DailyRanking from '@/components/DailyRanking';
 import TruthPoster, { EncodePoster } from '@/components/TruthPoster';
 
@@ -34,6 +35,7 @@ type Mode = 'decode' | 'encode';
 
 export default function Home() {
   const [mode, setMode] = useState<Mode>('decode');
+  const [sector, setSector] = useState<EncodeSector>('tech');
   const [input, setInput] = useState('');
   const [result, setResult] = useState<DecodeResult | null>(null);
   const [encodeResult, setEncodeResult] = useState<EncodeResult | null>(null);
@@ -55,7 +57,7 @@ export default function Home() {
       const res = await fetch('/api/encode', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text, sessionId: getSessionId() }),
+        body: JSON.stringify({ text, sessionId: getSessionId(), sector }),
       });
 
       if (!res.ok) {
@@ -184,6 +186,32 @@ export default function Home() {
           </button>
         </div>
       </div>
+
+      {/* 加密模式 Sector 切换 */}
+      {mode === 'encode' && (
+        <div className="max-w-4xl mx-auto mb-6">
+          <div className="flex gap-2">
+            {([
+              { key: 'tech',   label: '🖥️ 互联网',  desc: '阿里/字节风' },
+              { key: 'gov',    label: '📋 体制内',   desc: '公文写作风' },
+              { key: 'insane', label: '🦛 水豚',     desc: '优雅躺平风' },
+            ] as { key: EncodeSector; label: string; desc: string }[]).map(({ key, label, desc }) => (
+              <button
+                key={key}
+                onClick={() => setSector(key)}
+                className={`flex-1 py-3 px-2 rounded-lg border-2 transition-all text-center ${
+                  sector === key
+                    ? 'bg-neon-yellow text-black border-neon-yellow'
+                    : 'bg-[#0a0a0a] text-neon-yellow/60 border-neon-yellow/20 hover:border-neon-yellow/50 hover:text-neon-yellow'
+                }`}
+              >
+                <div className="font-bold text-sm">{label}</div>
+                <div className={`text-xs mt-0.5 ${sector === key ? 'text-black/60' : 'text-neon-yellow/40'}`}>{desc}</div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Input */}
       <div className="max-w-4xl mx-auto mb-12">
