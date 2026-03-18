@@ -199,7 +199,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto mb-6">
           <div className="flex gap-2">
             {([
-              { key: 'tech',   label: '🖥️ 互联网',  desc: '阿里/字节风' },
+              { key: 'tech',   label: '🖥️ 互联网',  desc: '大厂风' },
               { key: 'gov',    label: '📋 体制内',   desc: '公文写作风' },
               { key: 'insane', label: '🦛 水豚',     desc: '优雅躺平风' },
             ] as { key: EncodeSector; label: string; desc: string }[]).map(({ key, label, desc }) => (

@@ -187,7 +187,7 @@ const SCORE_LABEL: Record<number, string> = {
 };
 
 const SECTOR_LABEL: Record<string, string> = {
-  tech: '🖥️ 互联网风',
+  tech: '🖥️ 大厂风',
   gov: '📋 体制内风',
   insane: '🦛 水豚风',
 };
