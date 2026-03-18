@@ -3,10 +3,6 @@ compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = ".vercel/output/static"
 
-[[kv_namespaces]]
-binding = "PAY_SESSIONS"
-id = "4109d87e93504a63ae3edec61dab8322"
-preview_id = "4109d87e93504a63ae3edec61dab8322"
 
 [[d1_databases]]
 binding = "DB"
@@ -18,5 +14,3 @@ NEXT_PUBLIC_APP_URL = "https://truth-decoder.pages.dev"
 
 # Secrets — set via Dashboard or: wrangler secret put DEEPSEEK_API_KEY
 # DEEPSEEK_API_KEY
-# MIANBAODUO_WEBHOOK_SECRET
-# MIANBAODUO_APP_ID
