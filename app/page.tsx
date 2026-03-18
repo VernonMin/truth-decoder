@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Zap, Download, AlertTriangle, Sparkles, Lock, Share2, Gift } from 'lucide-react';
+import { Zap, AlertTriangle, Sparkles, Share2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import type { DecodeResult, EncodeResult } from '@/types';
 import DailyRanking from '@/components/DailyRanking';
@@ -30,12 +30,6 @@ function getSessionId(): string {
   return id;
 }
 
-// 从 URL 读取 ref 参数（好友分享的真相码）
-function getRefFromUrl(): string | null {
-  if (typeof window === 'undefined') return null;
-  return new URLSearchParams(window.location.search).get('ref');
-}
-
 type Mode = 'decode' | 'encode';
 
 export default function Home() {
@@ -44,59 +38,10 @@ export default function Home() {
   const [result, setResult] = useState<DecodeResult | null>(null);
   const [encodeResult, setEncodeResult] = useState<EncodeResult | null>(null);
   const [isDecoding, setIsDecoding] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
   const [error, setError] = useState('');
-  const [truthCode, setTruthCode] = useState('TK-??????');
-  const [referrerName, setReferrerName] = useState<string | null>(null);
-  const [buddyInput, setBuddyInput] = useState('');
-  const [buddyMsg, setBuddyMsg] = useState('');
   const posterRef = useRef<HTMLDivElement>(null);
   const encodePosterRef = useRef<HTMLDivElement>(null);
 
-  // 页面加载：检查 ref 参数 + 查询 buddy 状态
-  useEffect(() => {
-    const ref = getRefFromUrl();
-    const sid = getSessionId();
-
-    fetch(`/api/buddy/status?sessionId=${sid}`)
-      .then(r => r.json())
-      .then((data: unknown) => {
-        const d = data as {
-          unlockedByBuddy?: boolean;
-          referrerName?: string | null;
-          ownBuddyKey?: { key: string; used: boolean } | null;
-        };
-        if (d.unlockedByBuddy) setIsUnlocked(true);
-        if (d.referrerName) setReferrerName(d.referrerName);
-        if (d.ownBuddyKey?.key) setTruthCode(d.ownBuddyKey.key);
-      })
-      .catch(() => {});
-
-    // 如果 URL 带了 ref，自动尝试兑换
-    if (ref) {
-      fetch('/api/buddy/redeem', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ key: ref, sessionId: sid }),
-      })
-        .then(r => r.json())
-        .then((data: unknown) => {
-          const d = data as { success?: boolean; message?: string };
-          if (d.success) {
-            setIsUnlocked(true);
-            // 重新拉取 referrerName
-            fetch(`/api/buddy/status?sessionId=${sid}`)
-              .then(r => r.json())
-              .then((s: unknown) => {
-                const sd = s as { referrerName?: string | null };
-                if (sd.referrerName) setReferrerName(sd.referrerName);
-              })
-              .catch(() => {});
-          }
-        })
-        .catch(() => {});
-    }
-  }, []);
 
   const encodeReport = useCallback(async (text: string) => {
     if (!text.trim()) return;
@@ -174,23 +119,6 @@ export default function Home() {
     }
   }, []);
 
-  const unlockCrazyResponse = useCallback(() => {
-    alert('模拟：观看广告中... 3秒后解锁');
-    setTimeout(() => setIsUnlocked(true), 3000);
-  }, []);
-
-  // 手动输入真相码兑换
-  const redeemBuddyKey = useCallback(async () => {
-    if (!buddyInput.trim()) return;
-    const res = await fetch('/api/buddy/redeem', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ key: buddyInput.trim(), sessionId: getSessionId() }),
-    });
-    const data = await res.json() as { success?: boolean; message?: string };
-    setBuddyMsg(data.message ?? '');
-    if (data.success) setIsUnlocked(true);
-  }, [buddyInput]);
 
   // 生成海报
   const generatePoster = useCallback(async () => {
@@ -198,13 +126,13 @@ export default function Home() {
     try {
       const dataUrl = await toPng(posterRef.current, { quality: 0.95, pixelRatio: 2 });
       const link = document.createElement('a');
-      link.download = `职场真相证书-${truthCode}.png`;
+      link.download = `职场真相证书.png`;
       link.href = dataUrl;
       link.click();
     } catch {
       alert('生成海报失败，请重试');
     }
-  }, [truthCode]);
+  }, []);
 
   const reset = useCallback(() => {
     setInput('');
@@ -216,16 +144,6 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-black text-neon-yellow font-mono p-4 md:p-8 relative overflow-hidden">
       <div className="scan-line" />
-
-      {/* 好友 referral 提示横幅 */}
-      {referrerName && (
-        <div className="max-w-4xl mx-auto mb-6 bg-neon-yellow/10 border border-neon-yellow/40 rounded-lg px-5 py-3 flex items-center gap-3 animate-fade-in">
-          <Gift className="w-5 h-5 text-neon-yellow flex-shrink-0" />
-          <p className="text-sm text-neon-yellow">
-            你的朋友 <span className="font-bold">{referrerName}</span> 刚逃出了一个 PUA 陷阱，现在轮到你了 👀
-          </p>
-        </div>
-      )}
 
       {/* Header */}
       <header className="text-center mb-8 animate-fade-in">
@@ -266,33 +184,6 @@ export default function Home() {
           </button>
         </div>
       </div>
-
-      {/* 真相码兑换入口（未解锁时显示） */}
-      {!isUnlocked && (
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="bg-[#0a0a0a] border border-neon-yellow/20 rounded-lg p-4 flex flex-col sm:flex-row gap-3 items-center">
-            <span className="text-sm text-neon-yellow/60 flex-shrink-0">有真相码？</span>
-            <input
-              value={buddyInput}
-              onChange={e => setBuddyInput(e.target.value.toUpperCase())}
-              placeholder="输入 TK-XXXXXX"
-              maxLength={9}
-              className="flex-1 bg-black border border-neon-yellow/30 rounded px-3 py-2 text-sm text-neon-yellow placeholder-neon-yellow/30 focus:outline-none focus:border-neon-yellow font-mono"
-            />
-            <button
-              onClick={redeemBuddyKey}
-              className="bg-neon-yellow text-black font-bold px-5 py-2 rounded text-sm hover:bg-neon-yellow/90 transition-all flex-shrink-0"
-            >
-              解锁
-            </button>
-            {buddyMsg && (
-              <span className={`text-xs ${buddyMsg.includes('成功') ? 'text-green-400' : 'text-[#FF3B30]'}`}>
-                {buddyMsg}
-              </span>
-            )}
-          </div>
-        </div>
-      )}
 
       {/* Input */}
       <div className="max-w-4xl mx-auto mb-12">
@@ -391,22 +282,9 @@ export default function Home() {
             </div>
             <div>
               <div className="text-sm text-[#FF3B30]/70 mb-2">🔥 直接发疯版：</div>
-              {isUnlocked ? (
-                <div className="bg-black/50 border border-[#FF3B30]/30 rounded p-4 text-white/90 text-sm md:text-base leading-relaxed">
-                  {result.responses.crazy}
-                </div>
-              ) : (
-                <div className="bg-black/50 border border-[#FF3B30]/30 rounded p-4 relative">
-                  <div className="blur-sm text-white/50 text-sm md:text-base select-none">{result.responses.crazy}</div>
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <button onClick={unlockCrazyResponse}
-                      className="bg-[#FF3B30] text-white px-6 py-3 rounded-lg font-bold flex items-center gap-2 hover:bg-[#FF3B30]/90 transition-all">
-                      <Lock className="w-5 h-5" />
-                      <span>观看广告解锁</span>
-                    </button>
-                  </div>
-                </div>
-              )}
+              <div className="bg-black/50 border border-[#FF3B30]/30 rounded p-4 text-white/90 text-sm md:text-base leading-relaxed">
+                {result.responses.crazy}
+              </div>
             </div>
           </div>
 
@@ -424,12 +302,6 @@ export default function Home() {
             </button>
           </div>
 
-          {/* 真相码展示 */}
-          <div className="bg-[#0a0a0a] border border-neon-yellow/20 rounded-lg p-5 text-center">
-            <p className="text-xs text-neon-yellow/50 mb-2">你的专属真相码（截图分享，好友可免费解锁发疯回复）</p>
-            <div className="text-3xl font-bold neon-text tracking-widest">{truthCode}</div>
-            <p className="text-xs text-neon-yellow/40 mt-2">7 天有效 · 限 1 人使用</p>
-          </div>
         </div>
       )}
 
@@ -504,7 +376,6 @@ export default function Home() {
           <TruthPoster
             input={input}
             result={result}
-            truthCode={truthCode}
             appUrl={APP_URL}
           />
         </div>

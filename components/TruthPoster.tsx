@@ -3,7 +3,6 @@ import type { DecodeResult, EncodeResult } from '@/types';
 interface Props {
   input: string;
   result: DecodeResult;
-  truthCode: string;   // 例如 TK-A3F9KM
   appUrl: string;      // 例如 https://truth-decoder.pages.dev
 }
 
@@ -16,7 +15,7 @@ const PUA_LABEL: Record<number, string> = {
 };
 
 // 离屏渲染海报，用 html-to-image 截图
-export default function TruthPoster({ input, result, truthCode, appUrl }: Props) {
+export default function TruthPoster({ input, result, appUrl }: Props) {
   return (
     <div
       style={{
@@ -91,24 +90,13 @@ export default function TruthPoster({ input, result, truthCode, appUrl }: Props)
           </div>
         </div>
 
-        {/* 底部：真相码 + URL */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-          <div>
-            <div style={{ color: 'rgba(204,255,0,0.5)', fontSize: 10, marginBottom: 4 }}>
-              专属真相码（赠好友免费解锁）
-            </div>
-            <div style={{ color: '#CCFF00', fontSize: 20, fontWeight: 700, letterSpacing: 3,
-              textShadow: '0 0 8px #CCFF00' }}>
-              {truthCode}
-            </div>
+        {/* 底部：URL */}
+        <div style={{ textAlign: 'right' }}>
+          <div style={{ color: 'rgba(204,255,0,0.5)', fontSize: 10, marginBottom: 4 }}>
+            你的老板 PUA 等级是几星？
           </div>
-          <div style={{ textAlign: 'right' }}>
-            <div style={{ color: 'rgba(204,255,0,0.5)', fontSize: 10, marginBottom: 4 }}>
-              你的老板 PUA 等级是几星？
-            </div>
-            <div style={{ color: '#CCFF00', fontSize: 12 }}>
-              {appUrl}
-            </div>
+          <div style={{ color: '#CCFF00', fontSize: 12 }}>
+            {appUrl}
           </div>
         </div>
       </div>
