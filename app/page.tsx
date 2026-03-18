@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { flushSync } from 'react-dom';
 import { Zap, AlertTriangle, Sparkles, Share2 } from 'lucide-react';
 import { toPng } from 'html-to-image';
 import type { DecodeResult, EncodeResult } from '@/types';
@@ -91,15 +92,18 @@ export default function Home() {
   // 有结果时生成带 referral_id 的二维码
   useEffect(() => {
     if (!result && !encodeResult) return;
-    const qrUrl = `${APP_URL}?ref=${getSessionId()}`;
-    import('qrcode').then(QRCode => {
-      QRCode.default.toDataURL(qrUrl, {
-        width: 80,
-        margin: 1,
-        color: { dark: '#CCFF00', light: '#000000' },
-      }).then(url => setQrDataUrl(url)).catch(() => {});
-    });
+    ensureQr().then(url => { if (url) setQrDataUrl(url); });
   }, [result, encodeResult]);
+
+  async function ensureQr(): Promise<string> {
+    if (qrDataUrl) return qrDataUrl;
+    const qrUrl = `${APP_URL}?ref=${getSessionId()}`;
+    const QRCode = await import('qrcode');
+    return QRCode.default.toDataURL(qrUrl, {
+      width: 80, margin: 1,
+      color: { dark: '#CCFF00', light: '#000000' },
+    }).catch(() => '');
+  }
 
   const encodeReport = useCallback(async (text: string) => {
     if (!text.trim()) return;
@@ -134,13 +138,15 @@ export default function Home() {
   const generateEncodePoster = useCallback(async () => {
     if (!encodePosterRef.current) return;
     try {
+      const url = await ensureQr();
+      if (url && !qrDataUrl) flushSync(() => setQrDataUrl(url));
       const dataUrl = await toPng(encodePosterRef.current, { quality: 0.95, pixelRatio: 2, width: 600, height: 800 });
       setSaveDataUrl(dataUrl);
     } catch (e) {
       console.error('海报生成失败', e);
       alert('生成海报失败，请重试');
     }
-  }, []);
+  }, [qrDataUrl]);
 
   const decodeJargon = useCallback(async (text: string) => {
     if (!text.trim()) return;
@@ -180,13 +186,16 @@ export default function Home() {
   const generatePoster = useCallback(async () => {
     if (!posterRef.current) return;
     try {
+      // 确保 QR 就绪，flushSync 强制 DOM 同步更新后再截图
+      const url = await ensureQr();
+      if (url && !qrDataUrl) flushSync(() => setQrDataUrl(url));
       const dataUrl = await toPng(posterRef.current, { quality: 0.95, pixelRatio: 2, width: 600, height: 800 });
       setSaveDataUrl(dataUrl);
     } catch (e) {
       console.error('海报生成失败', e);
       alert('生成海报失败，请重试');
     }
-  }, []);
+  }, [qrDataUrl]);
 
   const reset = useCallback(() => {
     setInput('');
