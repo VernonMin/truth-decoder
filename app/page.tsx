@@ -86,6 +86,7 @@ export default function Home() {
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [saveDataUrl, setSaveDataUrl] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showEmailPreview, setShowEmailPreview] = useState(false);
   const posterRef = useRef<HTMLDivElement>(null);
   const encodePosterRef = useRef<HTMLDivElement>(null);
 
@@ -436,6 +437,16 @@ export default function Home() {
             <p className="text-black font-bold text-base">{encodeResult.sarcasm}</p>
           </div>
 
+          {sector === 'mnc' && (
+            <button
+              onClick={() => setShowEmailPreview(true)}
+              className="w-full bg-[#0a0a0a] border-2 border-neon-yellow/60 text-neon-yellow font-bold py-3 rounded-lg hover:bg-neon-yellow/10 transition-all flex items-center justify-center gap-2"
+            >
+              <span>📧</span>
+              <span>生成邮件预览</span>
+            </button>
+          )}
+
           <div className="flex flex-col md:flex-row gap-4">
             <button onClick={generateEncodePoster}
               className="flex-1 bg-neon-yellow text-black font-bold py-4 rounded-lg hover:bg-neon-yellow/90 transition-all flex items-center justify-center gap-2">
@@ -506,6 +517,62 @@ export default function Home() {
               <button
                 onClick={() => setSaveDataUrl('')}
                 className="flex-1 bg-[#1a1a1a] border border-neon-yellow/30 text-neon-yellow/70 font-bold py-3 rounded-lg text-sm hover:bg-neon-yellow/10 transition-all"
+              >
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 邮件预览弹窗 */}
+      {showEmailPreview && encodeResult && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4"
+          onClick={() => setShowEmailPreview(false)}
+        >
+          <div className="max-w-lg w-full flex flex-col gap-0" onClick={e => e.stopPropagation()}>
+            {/* 邮件头部 */}
+            <div className="bg-[#1a1a1a] border border-neon-yellow/30 rounded-t-lg px-5 py-4 font-mono">
+              <div className="text-neon-yellow/40 text-xs mb-3 tracking-widest">[ 📧 EMAIL PREVIEW ]</div>
+              <div className="text-sm space-y-1.5">
+                <div>
+                  <span className="text-neon-yellow/40">From: </span>
+                  <span className="text-white/70">{getSessionId()}@company.com</span>
+                </div>
+                <div>
+                  <span className="text-neon-yellow/40">To: </span>
+                  <span className="text-white/70">team@company.com</span>
+                </div>
+                <div className="border-t border-neon-yellow/10 pt-1.5">
+                  <span className="text-neon-yellow/40">Subject: </span>
+                  <span className="text-white font-bold">[Update] Business Trip Sync - Shanghai / HK / NYC</span>
+                </div>
+              </div>
+            </div>
+            {/* 邮件正文 */}
+            <div className="bg-[#0d0d0d] border-x border-neon-yellow/30 px-5 py-5 font-mono text-sm leading-relaxed space-y-4">
+              <p className="text-white/80">Hi Team,</p>
+              <p className="text-white">{encodeResult.encoded}</p>
+              <div className="pt-1">
+                <p className="text-white/80">Best Regards,</p>
+                <p className="text-neon-yellow font-bold">{getSessionId()}</p>
+              </div>
+            </div>
+            {/* 按钮 */}
+            <div className="bg-[#1a1a1a] border border-neon-yellow/30 rounded-b-lg px-5 py-4 flex gap-3">
+              <button
+                onClick={() => {
+                  const emailText = `Subject: [Update] Business Trip Sync - Shanghai / HK / NYC\n\nHi Team,\n\n${encodeResult.encoded}\n\nBest Regards,\n${getSessionId()}`;
+                  navigator.clipboard.writeText(emailText).then(() => { setCopied(true); setTimeout(() => setCopied(false), 1500); });
+                }}
+                className={`flex-1 font-bold py-3 rounded-lg text-sm transition-all ${copied ? 'bg-green-400/20 border border-green-400 text-green-400' : 'bg-neon-yellow text-black hover:bg-neon-yellow/80'}`}
+              >
+                {copied ? '✅ 已复制' : '📋 复制邮件'}
+              </button>
+              <button
+                onClick={() => setShowEmailPreview(false)}
+                className="flex-1 bg-transparent border border-neon-yellow/30 text-neon-yellow/60 font-bold py-3 rounded-lg text-sm hover:bg-neon-yellow/10 transition-all"
               >
                 关闭
               </button>
