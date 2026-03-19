@@ -84,24 +84,34 @@ const ENCODE_PROMPTS: Record<EncodeSector, string> = {
 
 逼格评分：1星=白话文 2星=初级公务员 3星=科级干部 4星=处级水平 5星=让领导觉得你能写进红头文件`,
 
-  mnc: `You are a senior manager at a top MNC (multinational company) in Shanghai or Hong Kong. Your job is to rewrite ordinary work reports in authentic MNC Chinglish style — mixing English buzzwords naturally into Chinese sentences, just like real MNC professionals do.
+  mnc: `你是一名在上海或香港 500 强外企工作多年的资深经理，擅长用地道的外企腔改写工作汇报。
 
-Core style: Heavy Chinglish. You MUST naturally embed these English keywords throughout: sync, alignment, high-level, leverage, bandwidth, pain points, bottom line, WLB, ASAP, deep dive, action items, follow up, stakeholders, visibility, deliverables, roadmap, loop in, circle back。句子以中文为主，关键词用英文，语气专业自信、略带优越感。
+【核心风格】中文主句架构 + 关键英文词点缀，语气专业自信、略带优越感，写出来可以直接发微信或钉钉群。
 
-示例风格：
-- "我这周没空" → "Based on my current bandwidth，我可能无法在这个 window 内跟你 sync。"
-- "开个会讨论一下" → "我们需要 align 一下，做个 high-level 的 sync，确保所有 stakeholders 都在同一页。"
-- "这个问题很难解决" → "This is a real pain point，我们需要 deep dive 进去，ASAP 找到 bottom line。"
+【英文使用规则】
+1. 英文单词只能出现在"动词"或"核心名词"位置，例如：leverage、sync、align、deep dive、pain points、stakeholders、alignment、bandwidth、WLB、ASAP、deliverables、roadmap、loop in
+2. 全篇英文占比严禁超过 30%
+3. 禁止出现整句英文——时间、地点、人物必须用中文，例如必须写"今天早上 8 点"而不是"This morning at 8 AM"
+4. 不要为了加英文而加英文，确保句子通顺自然
+
+【正确示例】
+- "我这周没空" → "本周我的 bandwidth 比较紧，暂时无法跟你 sync。"
+- "开个会讨论" → "我们需要做个 high-level 的 alignment，确保所有 stakeholders 方向一致。"
+- "今天开会+解决问题" → "今天早上 leveraged 会议时间与 5 个 key stakeholders 进行了 deep dive，收集了客户 pain points 并确保了项目 alignment。"
+
+【错误示例（禁止）】
+- "This is a real pain point" ← 整句英文，禁止
+- "Based on my current bandwidth" ← 整句英文开头，禁止
 
 你必须严格输出以下 JSON 格式，不要有任何额外文字：
 {
-  "encoded": "充满 MNC Chinglish 的完整版本（大量中英夹杂，关键词自然融入）",
+  "encoded": "外企腔版本（中文主句，英文关键词点缀，可直接发群）",
   "buzzwords": ["英文关键词1", "关键词2", "关键词3", "关键词4", "关键词5"],
   "professionalScore": 1到5的整数,
   "sarcasm": "一句毒舌点评，揭露这段外企腔的本质"
 }
 
-逼格评分：1星=土气白话 2星=初入外企 3星=混迹多年 4星=让国内同事听不懂 5星=老外都以为你是 native speaker`,
+逼格评分：1星=土气白话 2星=初入外企 3星=混迹多年 4星=让国内同事一脸懵 5星=老板以为你刚从纽约飞回来`,
 };
 
 const ENCODE_FEW_SHOTS: Record<EncodeSector, { role: 'user' | 'assistant'; content: string }[]> = {
@@ -134,8 +144,8 @@ const ENCODE_FEW_SHOTS: Record<EncodeSector, { role: 'user' | 'assistant'; conte
     {
       role: 'assistant',
       content: JSON.stringify({
-        encoded: 'Today I attended several cross-functional syncs to drive alignment on key initiatives，并 leverage 了现有资源协助 stakeholder 解决 pain points。整体 bandwidth 较为饱和，但 bottom line 是所有 action items 都在 track 上。Tomorrow will circle back with the team to ensure full visibility on deliverables，WLB 方面也在持续 manage。',
-        buzzwords: ['sync', 'alignment', 'bandwidth', 'pain points', 'action items'],
+        encoded: '今天上午参加了几场跨部门 sync，重点 align 了几个关键 initiatives 的方向；下午 leverage 现有资源协助同事解决了一个技术 pain point，确保 deliverables 按时推进。整体 bandwidth 较满，但所有 action items 均在 track 上，明天会进一步 loop in 相关同事跟进。',
+        buzzwords: ['sync', 'align', 'leverage', 'pain point', 'action items'],
         professionalScore: 4,
         sarcasm: '开了几个会、帮了个忙，写成了跨国公司季度汇报。MBA 含金量拉满。',
       }),
