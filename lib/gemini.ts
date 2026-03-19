@@ -53,7 +53,7 @@ const FEW_SHOT: { role: 'user' | 'assistant'; content: string }[] = [
   },
 ];
 
-export type EncodeSector = 'tech' | 'gov' | 'insane';
+export type EncodeSector = 'tech' | 'gov' | 'mnc';
 
 const ENCODE_PROMPTS: Record<EncodeSector, string> = {
   tech: `你是一名在阿里/字节跳动摸爬滚打10年的"互联网黑话大师"，专门把普通工作汇报包装成让老板眼前一亮的高逼格版本。
@@ -84,19 +84,24 @@ const ENCODE_PROMPTS: Record<EncodeSector, string> = {
 
 逼格评分：1星=白话文 2星=初级公务员 3星=科级干部 4星=处级水平 5星=让领导觉得你能写进红头文件`,
 
-  insane: `你是一只淡定的水豚，在职场里优雅地躺平、反卷、推卸责任。你要把普通工作汇报改写成"水豚版"——表面努力、实则摆烂，用最优雅的姿态完成最低限度的工作，还能让所有人觉得你很忙。
+  mnc: `You are a senior manager at a top MNC (multinational company) in Shanghai or Hong Kong. Your job is to rewrite ordinary work reports in authentic MNC Chinglish style — mixing English buzzwords naturally into Chinese sentences, just like real MNC professionals do.
 
-风格：水豚哲学。大量使用"在推进中"、"持续跟进"、"等待反馈"、"受客观因素影响"、"已同步相关方"、"待进一步对齐"等优雅推卸语，营造出极度忙碌但毫无产出的高级感。
+Core style: Heavy Chinglish. You MUST naturally embed these English keywords throughout: sync, alignment, high-level, leverage, bandwidth, pain points, bottom line, WLB, ASAP, deep dive, action items, follow up, stakeholders, visibility, deliverables, roadmap, loop in, circle back。句子以中文为主，关键词用英文，语气专业自信、略带优越感。
+
+示例风格：
+- "我这周没空" → "Based on my current bandwidth，我可能无法在这个 window 内跟你 sync。"
+- "开个会讨论一下" → "我们需要 align 一下，做个 high-level 的 sync，确保所有 stakeholders 都在同一页。"
+- "这个问题很难解决" → "This is a real pain point，我们需要 deep dive 进去，ASAP 找到 bottom line。"
 
 你必须严格输出以下 JSON 格式，不要有任何额外文字：
 {
-  "encoded": "水豚风格的完整版本（内容模糊化、责任外包化、进度永远在进行时）",
-  "buzzwords": ["推卸词1", "推卸词2", "推卸词3", "推卸词4", "推卸词5"],
+  "encoded": "充满 MNC Chinglish 的完整版本（大量中英夹杂，关键词自然融入）",
+  "buzzwords": ["英文关键词1", "关键词2", "关键词3", "关键词4", "关键词5"],
   "professionalScore": 1到5的整数,
-  "sarcasm": "一句话点破这份报告的水豚本质"
+  "sarcasm": "一句毒舌点评，揭露这段外企腔的本质"
 }
 
-逼格评分：1星=太明显在摸鱼 2星=初级水豚 3星=资深躺平人 4星=让老板以为你很忙 5星=水豚界的艺术家`,
+逼格评分：1星=土气白话 2星=初入外企 3星=混迹多年 4星=让国内同事听不懂 5星=老外都以为你是 native speaker`,
 };
 
 const ENCODE_FEW_SHOTS: Record<EncodeSector, { role: 'user' | 'assistant'; content: string }[]> = {
@@ -124,15 +129,15 @@ const ENCODE_FEW_SHOTS: Record<EncodeSector, { role: 'user' | 'assistant'; conte
       }),
     },
   ],
-  insane: [
-    { role: 'user', content: '今天什么都没干，就摸鱼了一天' },
+  mnc: [
+    { role: 'user', content: '今天开了几个会，下午帮同事解决了个问题，没什么特别的产出' },
     {
       role: 'assistant',
       content: JSON.stringify({
-        encoded: '今日持续跟进各项工作推进情况，已同步相关方并等待反馈；受客观因素影响，部分事项正在协调资源中，预计近期完成对齐；整体工作有序推进，后续将进一步强化跟踪落实。',
-        buzzwords: ['持续跟进', '等待反馈', '受客观因素影响', '协调资源', '待进一步对齐'],
-        professionalScore: 5,
-        sarcasm: '什么都没干，却写出了一份让人挑不出毛病的工作日报。水豚艺术家。',
+        encoded: 'Today I attended several cross-functional syncs to drive alignment on key initiatives，并 leverage 了现有资源协助 stakeholder 解决 pain points。整体 bandwidth 较为饱和，但 bottom line 是所有 action items 都在 track 上。Tomorrow will circle back with the team to ensure full visibility on deliverables，WLB 方面也在持续 manage。',
+        buzzwords: ['sync', 'alignment', 'bandwidth', 'pain points', 'action items'],
+        professionalScore: 4,
+        sarcasm: '开了几个会、帮了个忙，写成了跨国公司季度汇报。MBA 含金量拉满。',
       }),
     },
   ],

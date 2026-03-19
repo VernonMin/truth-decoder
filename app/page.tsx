@@ -255,7 +255,7 @@ export default function Home() {
             {([
               { key: 'tech',   label: '🖥️ 互联网',  desc: '大厂风' },
               { key: 'gov',    label: '📋 体制内',   desc: '公文写作风' },
-              { key: 'insane', label: '🦛 水豚',     desc: '优雅躺平风' },
+              { key: 'mnc',    label: '👔 外企',     desc: 'WLB & 专业风' },
             ] as { key: EncodeSector; label: string; desc: string }[]).map(({ key, label, desc }) => (
               <button
                 key={key}

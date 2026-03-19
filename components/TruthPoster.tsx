@@ -184,7 +184,7 @@ const SCORE_LABEL: Record<number, string> = {
 const SECTOR_LABEL: Record<string, string> = {
   tech: '🖥️ 大厂风',
   gov: '📋 体制内风',
-  insane: '🦛 水豚风',
+  mnc: '👔 外企风',
 };
 
 export function EncodePoster({ input, result, appUrl, qrDataUrl, sector = 'tech' }: EncodePosterProps) {
