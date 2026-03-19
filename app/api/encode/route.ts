@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const body = await request.json() as { text?: string; sessionId?: string; sector?: string };
     text = (body.text ?? '').trim();
     sessionId = (body.sessionId ?? 'anonymous').slice(0, 64);
-    sector = (['tech', 'gov', 'insane'] as EncodeSector[]).includes(body.sector as EncodeSector)
+    sector = (['tech', 'gov', 'mnc'] as EncodeSector[]).includes(body.sector as EncodeSector)
       ? (body.sector as EncodeSector)
       : 'tech';
   } catch {
