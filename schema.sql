@@ -50,3 +50,4 @@ CREATE INDEX IF NOT EXISTS idx_decode_logs_session ON decode_logs(session_id, cr
 CREATE INDEX IF NOT EXISTS idx_payment_records_session ON payment_records(session_id);
 CREATE INDEX IF NOT EXISTS idx_jargon_stats_date ON jargon_stats(date, decode_count DESC);
 
+

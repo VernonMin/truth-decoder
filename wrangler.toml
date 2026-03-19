@@ -11,6 +11,4 @@ database_id = "df2e5b63-60c9-4726-a9a5-e4c218cfc4c3"
 
 [vars]
 NEXT_PUBLIC_APP_URL = "https://td.vedi0.com"
-
 # Secrets — set via Dashboard or: wrangler secret put DEEPSEEK_API_KEY
-# DEEPSEEK_API_KEY
