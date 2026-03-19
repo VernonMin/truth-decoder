@@ -89,21 +89,22 @@ export default function Home() {
   const [showEmailPreview, setShowEmailPreview] = useState(false);
   const posterRef = useRef<HTMLDivElement>(null);
   const encodePosterRef = useRef<HTMLDivElement>(null);
+  const qrPromiseRef = useRef<Promise<string> | null>(null);
 
-  // 有结果时生成带 referral_id 的二维码
+  // 有结果时预生成二维码
   useEffect(() => {
     if (!result && !encodeResult) return;
-    ensureQr().then(url => { if (url) setQrDataUrl(url); });
+    ensureQr().then(url => { if (url) flushSync(() => setQrDataUrl(url)); });
   }, [result, encodeResult]);
 
-  async function ensureQr(): Promise<string> {
-    if (qrDataUrl) return qrDataUrl;
+  function ensureQr(): Promise<string> {
+    if (qrDataUrl) return Promise.resolve(qrDataUrl);
+    if (qrPromiseRef.current) return qrPromiseRef.current;
     const qrUrl = `${APP_URL}?ref=${getSessionId()}`;
-    const QRCode = await import('qrcode');
-    return QRCode.default.toDataURL(qrUrl, {
-      width: 80, margin: 1,
-      color: { dark: '#CCFF00', light: '#000000' },
-    }).catch(() => '');
+    qrPromiseRef.current = import('qrcode').then(({ default: QRCode }) =>
+      QRCode.toDataURL(qrUrl, { width: 80, margin: 1, color: { dark: '#CCFF00', light: '#000000' } })
+    ).catch(() => '').finally(() => { qrPromiseRef.current = null; });
+    return qrPromiseRef.current;
   }
 
   const encodeReport = useCallback(async (text: string) => {
@@ -141,7 +142,8 @@ export default function Home() {
     try {
       const url = await ensureQr();
       if (url && !qrDataUrl) flushSync(() => setQrDataUrl(url));
-      const dataUrl = await toPng(encodePosterRef.current, { quality: 0.95, pixelRatio: 2, width: 600, height: 800 });
+      await new Promise(r => setTimeout(r, 50));
+      const dataUrl = await toPng(encodePosterRef.current!, { quality: 0.95, pixelRatio: 2, width: 600, height: 800 });
       setSaveDataUrl(dataUrl);
     } catch (e) {
       console.error('海报生成失败', e);
@@ -187,10 +189,12 @@ export default function Home() {
   const generatePoster = useCallback(async () => {
     if (!posterRef.current) return;
     try {
-      // 确保 QR 就绪，flushSync 强制 DOM 同步更新后再截图
+      // 确保 QR 就绪（多数情况 useEffect 已预生成，此处兜底）
       const url = await ensureQr();
       if (url && !qrDataUrl) flushSync(() => setQrDataUrl(url));
-      const dataUrl = await toPng(posterRef.current, { quality: 0.95, pixelRatio: 2, width: 600, height: 800 });
+      // 等一个 microtask，确保 DOM 已更新
+      await new Promise(r => setTimeout(r, 50));
+      const dataUrl = await toPng(posterRef.current!, { quality: 0.95, pixelRatio: 2, width: 600, height: 800 });
       setSaveDataUrl(dataUrl);
     } catch (e) {
       console.error('海报生成失败', e);
