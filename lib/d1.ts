@@ -113,7 +113,7 @@ export async function likeJargon(
 
 // ── 用户权限 ────────────────────────────────────────────────
 
-export const FREE_LIMIT = 3;
+export const FREE_LIMIT = 1000;
 
 export interface UserStatus {
   usageCount: number;

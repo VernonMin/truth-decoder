@@ -73,7 +73,7 @@ export default function Home() {
   const qrPromiseRef = useRef<Promise<string> | null>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  const FREE_LIMIT = 3;
+  const FREE_LIMIT = 1000;
 
   // 初始化用户状态
   useEffect(() => {
