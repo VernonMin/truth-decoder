@@ -183,7 +183,7 @@ export default function Home() {
       const url = await ensureQr();
       if (url && !qrDataUrl) flushSync(() => setQrDataUrl(url));
       await new Promise(r => setTimeout(r, 50));
-      const dataUrl = await toPng(encodePosterRef.current!, { quality: 0.95, pixelRatio: 2, width: 600, height: 800 });
+      const dataUrl = await toPng(encodePosterRef.current!, { quality: 0.95, pixelRatio: 2, width: 600, height: 800, skipFonts: true });
       setSaveDataUrl(dataUrl);
     } catch (e) {
       console.error('海报生成失败', e);
@@ -236,7 +236,7 @@ export default function Home() {
       if (url && !qrDataUrl) flushSync(() => setQrDataUrl(url));
       // 等一个 microtask，确保 DOM 已更新
       await new Promise(r => setTimeout(r, 50));
-      const dataUrl = await toPng(posterRef.current!, { quality: 0.95, pixelRatio: 2, width: 600, height: 800 });
+      const dataUrl = await toPng(posterRef.current!, { quality: 0.95, pixelRatio: 2, width: 600, height: 800, skipFonts: true });
       setSaveDataUrl(dataUrl);
     } catch (e) {
       console.error('海报生成失败', e);
@@ -539,7 +539,7 @@ export default function Home() {
       </div>
 
       {/* 离屏加密海报（用于截图） */}
-      <div style={{ position: 'absolute', top: 0, left: '-9999px', width: 600, height: 800, overflow: 'hidden', pointerEvents: 'none' }}>
+      <div style={{ position: 'fixed', top: '-9999px', left: '-9999px', width: 600, height: 800, overflow: 'hidden', pointerEvents: 'none' }}>
         {encodeResult && (
           <div ref={encodePosterRef}>
             <EncodePoster
