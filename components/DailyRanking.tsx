@@ -10,7 +10,7 @@ interface RankItem {
   like_count: number;
 }
 
-const PUA_COLORS = ['', 'text-green-400', 'text-yellow-400', 'text-orange-400', 'text-red-400', 'text-red-600'];
+const PUA_COLORS = ['', 'text-green-500', 'text-yellow-500', 'text-orange-500', 'text-red-400', 'text-red-600'];
 
 export default function DailyRanking({ sessionId }: { sessionId: string }) {
   const [items, setItems] = useState<RankItem[]>([]);
@@ -53,12 +53,12 @@ export default function DailyRanking({ sessionId }: { sessionId: string }) {
     return (
       <div className="max-w-4xl mx-auto mt-16">
         <div className="flex items-center gap-2 mb-6">
-          <Flame className="w-6 h-6 text-[#FF3B30]" />
-          <h2 className="text-xl font-bold">今日黑话热榜</h2>
+          <Flame className="w-6 h-6 text-[#FB7185]" />
+          <h2 className="text-xl font-bold text-[#2D1B69]">今日黑话热榜</h2>
         </div>
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
-            <div key={i} className="h-14 bg-[#0a0a0a] rounded-lg animate-pulse" />
+            <div key={i} className="h-14 bg-white border border-[#F9C8E0] rounded-2xl animate-pulse" />
           ))}
         </div>
       </div>
@@ -67,8 +67,8 @@ export default function DailyRanking({ sessionId }: { sessionId: string }) {
 
   if (items.length === 0) {
     return (
-      <div className="max-w-4xl mx-auto mt-16 text-center text-neon-yellow/40 text-sm">
-        <Flame className="w-8 h-8 mx-auto mb-2 opacity-30" />
+      <div className="max-w-4xl mx-auto mt-16 text-center text-[#9E9AB8] text-sm">
+        <Flame className="w-8 h-8 mx-auto mb-2 opacity-30 text-[#FB7185]" />
         <p>今日榜单空空如也，快去翻译第一条黑话！</p>
       </div>
     );
@@ -77,16 +77,16 @@ export default function DailyRanking({ sessionId }: { sessionId: string }) {
   return (
     <div className="max-w-4xl mx-auto mt-16">
       <div className="flex items-center gap-2 mb-6">
-        <Flame className="w-6 h-6 text-[#FF3B30] animate-pulse" />
-        <h2 className="text-xl font-bold">今日黑话热榜</h2>
-        <span className="text-xs text-neon-yellow/40 ml-auto">每日 0 点重置</span>
+        <Flame className="w-6 h-6 text-[#FB7185] animate-pulse" />
+        <h2 className="text-xl font-bold text-[#2D1B69]">今日黑话热榜</h2>
+        <span className="text-xs text-[#9E9AB8] ml-auto">每日 0 点重置</span>
       </div>
 
       <div className="space-y-3">
         {items.map((item, index) => (
           <div
             key={item.input_text}
-            className="bg-[#0a0a0a] border border-neon-yellow/10 rounded-lg p-4 flex items-center gap-4 hover:border-neon-yellow/30 transition-all"
+            className="bg-white border border-[#F9C8E0] rounded-2xl p-4 flex items-center gap-4 hover:border-[#FF6EB4]/50 hover:shadow-sm transition-all"
           >
             {/* 排名 */}
             <div className="w-8 flex-shrink-0 text-center">
@@ -97,18 +97,18 @@ export default function DailyRanking({ sessionId }: { sessionId: string }) {
               ) : index === 2 ? (
                 <Trophy className="w-5 h-5 text-amber-700 mx-auto" />
               ) : (
-                <span className="text-neon-yellow/40 font-mono text-sm">{index + 1}</span>
+                <span className="text-[#9E9AB8] text-sm font-bold">{index + 1}</span>
               )}
             </div>
 
             {/* 黑话内容 */}
             <div className="flex-1 min-w-0">
-              <p className="text-white/90 text-sm truncate">{item.input_text}</p>
+              <p className="text-[#2D1B69] text-sm truncate font-medium">{item.input_text}</p>
               <div className="flex items-center gap-3 mt-1">
-                <span className={`text-xs ${PUA_COLORS[item.pua_level] ?? 'text-neon-yellow/40'}`}>
+                <span className={`text-xs ${PUA_COLORS[item.pua_level] ?? 'text-[#9E9AB8]'}`}>
                   {'★'.repeat(item.pua_level)}{'☆'.repeat(5 - item.pua_level)} PUA
                 </span>
-                <span className="text-xs text-neon-yellow/40">
+                <span className="text-xs text-[#9E9AB8]">
                   {item.decode_count} 人翻译过
                 </span>
               </div>
@@ -117,10 +117,10 @@ export default function DailyRanking({ sessionId }: { sessionId: string }) {
             {/* 点赞 */}
             <button
               onClick={() => handleLike(item.input_text)}
-              className={`flex items-center gap-1 px-3 py-1.5 rounded-lg text-sm transition-all flex-shrink-0 ${
+              className={`flex items-center gap-1 px-3 py-1.5 rounded-xl text-sm transition-all flex-shrink-0 ${
                 likedSet.has(item.input_text)
-                  ? 'bg-neon-yellow/20 text-neon-yellow cursor-default'
-                  : 'bg-[#1a1a1a] text-neon-yellow/60 hover:bg-neon-yellow/10 hover:text-neon-yellow'
+                  ? 'bg-[#FF6EB4]/20 text-[#FF6EB4] cursor-default'
+                  : 'bg-[#FFF5FB] text-[#9E9AB8] hover:bg-[#FF6EB4]/10 hover:text-[#FF6EB4] border border-[#F9C8E0]'
               }`}
             >
               <ThumbsUp className="w-3.5 h-3.5" />

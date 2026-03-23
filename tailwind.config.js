@@ -8,14 +8,14 @@ export default {
   theme: {
     extend: {
       colors: {
-        'neon-yellow': '#CCFF00',
-        'alert-red': '#FF3B30',
-        'dark-bg': '#000000',
-        'dark-card': '#0a0a0a',
-        'dark-border': '#1a1a1a',
+        'neon-yellow': '#FF6EB4',
+        'alert-red': '#FB7185',
+        'dark-bg': '#FFF5FB',
+        'dark-card': '#FFFFFF',
+        'dark-border': '#F9C8E0',
       },
       fontFamily: {
-        mono: ['Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', 'monospace'],
+        mono: ['Nunito', 'Noto Sans SC', 'system-ui', 'sans-serif'],
       },
       animation: {
         'scan': 'scan 2s linear infinite',
@@ -23,6 +23,7 @@ export default {
         'shake': 'shake 0.5s ease-in-out',
         'fade-in': 'fade-in 0.5s ease-out',
         'slide-up': 'slide-up 0.3s ease-out',
+        'float': 'float 3s ease-in-out infinite',
       },
       keyframes: {
         scan: {
@@ -30,8 +31,8 @@ export default {
           '100%': { transform: 'translateY(100%)' },
         },
         'pulse-glow': {
-          '0%, 100%': { boxShadow: '0 0 5px #CCFF00, 0 0 10px #CCFF00' },
-          '50%': { boxShadow: '0 0 20px #CCFF00, 0 0 30px #CCFF00' },
+          '0%, 100%': { boxShadow: '0 0 5px #FF6EB4, 0 0 10px #FF6EB4' },
+          '50%': { boxShadow: '0 0 20px #FF6EB4, 0 0 30px #FF6EB4' },
         },
         shake: {
           '0%, 100%': { transform: 'translateX(0)' },
@@ -45,6 +46,10 @@ export default {
         'slide-up': {
           '0%': { transform: 'translateY(20px)', opacity: '0' },
           '100%': { transform: 'translateY(0)', opacity: '1' },
+        },
+        'float': {
+          '0%, 100%': { transform: 'translateY(0px)' },
+          '50%': { transform: 'translateY(-10px)' },
         },
       },
     },

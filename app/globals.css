@@ -10,9 +10,9 @@
     padding: 0;
     width: 100%;
     min-height: 100vh;
-    background-color: #000000;
-    color: #CCFF00;
-    font-family: 'Menlo', 'Monaco', 'Consolas', 'Liberation Mono', 'Courier New', monospace;
+    background-color: #FFF5FB;
+    color: #2D1B69;
+    font-family: 'Nunito', 'Noto Sans SC', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     overflow-x: hidden;
@@ -21,30 +21,16 @@
 
 @layer components {
   .neon-text {
-    text-shadow: 0 0 5px #CCFF00, 0 0 10px #CCFF00, 0 0 20px #CCFF00;
+    text-shadow: 0 0 8px rgba(255,110,180,0.6);
   }
   .neon-border {
-    box-shadow: 0 0 5px #CCFF00, inset 0 0 5px #CCFF00;
+    box-shadow: 0 0 12px rgba(255,110,180,0.25), inset 0 0 8px rgba(255,110,180,0.05);
   }
   .alert-text {
-    color: #FF3B30;
-    text-shadow: 0 0 5px #FF3B30, 0 0 10px #FF3B30;
+    color: #FB7185;
   }
   .scan-line {
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #CCFF00, transparent);
-    animation: scan 2s linear infinite;
-  }
-  .scan-line::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, #CCFF00, transparent);
-    box-shadow: 0 0 10px #CCFF00, 0 0 20px #CCFF00;
-    animation: scan 2s linear infinite;
+    display: none;
   }
 }
 
@@ -71,14 +57,14 @@
 
 /* Scrollbar */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
-::-webkit-scrollbar-track { background: #0a0a0a; }
-::-webkit-scrollbar-thumb { background: #CCFF00; border-radius: 4px; }
-::-webkit-scrollbar-thumb:hover { background: #b3e600; }
+::-webkit-scrollbar-track { background: #FFF0F9; }
+::-webkit-scrollbar-thumb { background: #FF6EB4; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #e05a9e; }
 
-::selection { background: #CCFF00; color: #000000; }
-::placeholder { color: rgba(204, 255, 0, 0.4); }
-:focus-visible { outline: 2px solid #CCFF00; outline-offset: 2px; }
+::selection { background: #FF6EB4; color: #ffffff; }
+::placeholder { color: rgba(255,110,180,0.4); }
+:focus-visible { outline: 2px solid #FF6EB4; outline-offset: 2px; }
 
 @media (max-width: 768px) {
-  .scan-line::before { animation-duration: 3s; }
+  .scan-line { display: none; }
 }
