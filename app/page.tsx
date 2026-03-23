@@ -128,23 +128,12 @@ export default function Home() {
     }, 3000);
   }
 
-  async function handlePayClick() {
-    setPaywallLoading(true);
-    try {
-      const { payUrl } = await fetch('/api/pay/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ sessionId: getSessionId() }),
-      }).then(r => r.json() as Promise<{ payUrl?: string; error?: string }>);
-
-      if (!payUrl) throw new Error('no payUrl');
-      window.open(payUrl, '_blank');
-      startPolling();
-    } catch {
-      alert('支付服务暂时不可用，请稍后重试');
-    } finally {
-      setPaywallLoading(false);
-    }
+  function handlePayClick() {
+    const base = process.env.NEXT_PUBLIC_MBD_PRODUCT_URL;
+    if (!base) { alert('支付未配置，请联系管理员'); return; }
+    const payUrl = `${base}?out_order_id=${encodeURIComponent(getSessionId())}`;
+    window.open(payUrl, '_blank');
+    startPolling();
   }
 
   // 有结果时预生成二维码

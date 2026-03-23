@@ -11,6 +11,6 @@ database_id = "df2e5b63-60c9-4726-a9a5-e4c218cfc4c3"
 
 [vars]
 NEXT_PUBLIC_APP_URL = "https://td.vedi0.com"
-MBD_PRODUCT_URL = "https://mbd.pub/o/bread/mbd-YZWckplsaA=="
+NEXT_PUBLIC_MBD_PRODUCT_URL = "https://mbd.pub/o/bread/mbd-YZWckplsaA=="
 # Secrets — set via: wrangler secret put DEEPSEEK_API_KEY
 # Secrets — set via: wrangler secret put MBD_API_TOKEN

@@ -21,5 +21,4 @@ export interface Env {
   DB: D1Database;
   DEEPSEEK_API_KEY: string;
   MBD_API_TOKEN: string;    // 面包多开发者密钥，从 https://mbd.pub/o/config/developer 获取
-  MBD_PRODUCT_URL: string;  // 商品页面 URL，如 https://mbd.pub/o/bread/YZ2amZk=
 }
