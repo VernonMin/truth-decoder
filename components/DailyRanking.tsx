@@ -54,7 +54,7 @@ export default function DailyRanking({ sessionId }: { sessionId: string }) {
       <div className="max-w-4xl mx-auto mt-16">
         <div className="flex items-center gap-2 mb-6">
           <Flame className="w-6 h-6 text-[#FB7185]" />
-          <h2 className="text-xl font-bold text-[#2D1B69]">今日黑话热榜</h2>
+          <h2 className="text-xl font-bold text-[#2D1B69]">今日职场热词榜</h2>
         </div>
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
@@ -78,7 +78,7 @@ export default function DailyRanking({ sessionId }: { sessionId: string }) {
     <div className="max-w-4xl mx-auto mt-16">
       <div className="flex items-center gap-2 mb-6">
         <Flame className="w-6 h-6 text-[#FB7185] animate-pulse" />
-        <h2 className="text-xl font-bold text-[#2D1B69]">今日黑话热榜</h2>
+        <h2 className="text-xl font-bold text-[#2D1B69]">今日职场热词榜</h2>
         <span className="text-xs text-[#9E9AB8] ml-auto">每日 0 点重置</span>
       </div>
 

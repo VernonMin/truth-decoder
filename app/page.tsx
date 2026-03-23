@@ -44,7 +44,7 @@ function CuteLoading({ mode }: { mode: Mode }) {
         <div className="text-center">
           <div className="text-4xl mb-3 animate-bounce">{mode === 'decode' ? '🔍' : '✨'}</div>
           <div className="text-[#FF6EB4] font-bold text-lg">{mode === 'decode' ? '正在解析中...' : '正在加密中...'}</div>
-          <div className="text-[#9E9AB8] text-sm mt-1">{mode === 'decode' ? '撕碎职场假面，还你清醒' : '注入职场话术...'}</div>
+          <div className="text-[#9E9AB8] text-sm mt-1">{mode === 'decode' ? '读懂职场话术，做清醒打工人' : '注入职场话术...'}</div>
         </div>
       </div>
     </div>
@@ -264,7 +264,7 @@ export default function Home() {
           <span className="text-3xl md:text-5xl animate-float">🌸</span>
         </div>
         <p className="text-sm md:text-lg text-[#2D1B69]/70 tracking-wider">
-          {mode === 'decode' ? '✨ 撕碎职场假面，还你人间清醒 ✨' : '✨ 白话变黑话，让老板看不懂你有多闲 ✨'}
+          {mode === 'decode' ? '✨ 读懂职场话术，做清醒打工人 ✨' : '✨ 白话变黑话，让老板看不懂你有多闲 ✨'}
         </p>
         {usageCount !== null && (
           <div className="mt-3 flex justify-center">
@@ -296,7 +296,7 @@ export default function Home() {
                 : 'bg-white text-[#9E9AB8] hover:text-[#FF6EB4] hover:bg-[#FFF0F9]'
             }`}
           >
-            🔍 解密模式 · 黑话→人话
+            🔍 解密模式 · 职场话术解析
           </button>
           <button
             onClick={() => { setMode('encode'); reset(); }}

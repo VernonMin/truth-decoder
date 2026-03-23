@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  title: '职场黑话翻译站 | 撕碎职场假面，还你人间清醒',
+  title: '职场话术解析 | 读懂职场话术，做清醒打工人',
   description: '用 AI 翻译职场黑话，揭露 PUA，提供情绪价值。',
 };
 
