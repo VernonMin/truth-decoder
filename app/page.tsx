@@ -24,6 +24,9 @@ const VIRAL_QUOTES = [
 
 function getSessionId(): string {
   if (typeof window === 'undefined') return 'ssr';
+  // 优先使用设备指纹（跨无痕窗口保持一致）
+  const fpId = localStorage.getItem('_fpid');
+  if (fpId) return fpId;
   let id = localStorage.getItem('_sid');
   if (!id) {
     id = crypto.randomUUID();
@@ -105,6 +108,23 @@ export default function Home() {
       .then(r => r.json() as Promise<{ usageCount: number; isPro: boolean }>)
       .then(({ usageCount, isPro }) => { setUsageCount(usageCount); setIsPro(isPro); })
       .catch(() => {});
+  }, []);
+
+  // 加载设备指纹，加载完成后若 ID 变了就重新拉取 credits
+  useEffect(() => {
+    const prevId = getSessionId();
+    import('@fingerprintjs/fingerprintjs').then(FingerprintJS => FingerprintJS.default.load())
+      .then(fp => fp.get())
+      .then(({ visitorId }) => {
+        localStorage.setItem('_fpid', visitorId);
+        if (visitorId !== prevId) {
+          fetch(`/api/credits?sessionId=${visitorId}`)
+            .then(r => r.json() as Promise<{ usageCount: number; isPro: boolean }>)
+            .then(({ usageCount, isPro }) => { setUsageCount(usageCount); setIsPro(isPro); })
+            .catch(() => {});
+        }
+      })
+      .catch(() => {}); // 指纹失败时降级为 UUID，不影响正常流程
   }, []);
 
   // 清理轮询
