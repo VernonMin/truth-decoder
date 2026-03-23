@@ -1,5 +1,6 @@
 import { getRequestContext } from '@cloudflare/next-on-pages';
 import { callDeepSeekEncode, type EncodeSector } from '@/lib/gemini';
+import { getOrCreateUser, incrementUsageCount, FREE_LIMIT } from '@/lib/d1';
 import type { Env } from '@/types';
 
 export const runtime = 'edge';
@@ -24,6 +25,11 @@ export async function POST(request: Request) {
     return Response.json({ error: '输入无效（1-1000字符）' }, { status: 400 });
   }
 
+  const user = await getOrCreateUser(typedEnv.DB, sessionId);
+  if (!user.isPro && user.usageCount >= FREE_LIMIT) {
+    return Response.json({ error: 'payment_required' }, { status: 402 });
+  }
+
   let result;
   try {
     result = await callDeepSeekEncode(text, typedEnv.DEEPSEEK_API_KEY, sector);
@@ -31,6 +37,9 @@ export async function POST(request: Request) {
     console.error('DeepSeek encode error:', err);
     return Response.json({ error: 'AI 服务暂时不可用，请稍后重试' }, { status: 502 });
   }
+
+  const { ctx } = getRequestContext();
+  ctx.waitUntil(incrementUsageCount(typedEnv.DB, sessionId));
 
   return Response.json(result);
 }

@@ -87,9 +87,65 @@ export default function Home() {
   const [saveDataUrl, setSaveDataUrl] = useState('');
   const [copied, setCopied] = useState(false);
   const [showEmailPreview, setShowEmailPreview] = useState(false);
+  const [isPro, setIsPro] = useState(false);
+  const [usageCount, setUsageCount] = useState<number | null>(null);
+  const [showPaywall, setShowPaywall] = useState(false);
+  const [paywallLoading, setPaywallLoading] = useState(false);
+  const [polling, setPolling] = useState(false);
   const posterRef = useRef<HTMLDivElement>(null);
   const encodePosterRef = useRef<HTMLDivElement>(null);
   const qrPromiseRef = useRef<Promise<string> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const FREE_LIMIT = 3;
+
+  // 初始化用户状态
+  useEffect(() => {
+    fetch(`/api/credits?sessionId=${getSessionId()}`)
+      .then(r => r.json() as Promise<{ usageCount: number; isPro: boolean }>)
+      .then(({ usageCount, isPro }) => { setUsageCount(usageCount); setIsPro(isPro); })
+      .catch(() => {});
+  }, []);
+
+  // 清理轮询
+  useEffect(() => () => { if (pollRef.current) clearInterval(pollRef.current); }, []);
+
+  function startPolling() {
+    if (pollRef.current) return;
+    setPolling(true);
+    pollRef.current = setInterval(async () => {
+      try {
+        const { isPro } = await fetch(`/api/pay/check-order?sessionId=${getSessionId()}`)
+          .then(r => r.json() as Promise<{ isPro: boolean }>);
+        if (isPro) {
+          clearInterval(pollRef.current!);
+          pollRef.current = null;
+          setPolling(false);
+          setIsPro(true);
+          setShowPaywall(false);
+        }
+      } catch { /* ignore */ }
+    }, 3000);
+  }
+
+  async function handlePayClick() {
+    setPaywallLoading(true);
+    try {
+      const { payUrl } = await fetch('/api/pay/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: getSessionId() }),
+      }).then(r => r.json() as Promise<{ payUrl?: string; error?: string }>);
+
+      if (!payUrl) throw new Error('no payUrl');
+      window.open(payUrl, '_blank');
+      startPolling();
+    } catch {
+      alert('支付服务暂时不可用，请稍后重试');
+    } finally {
+      setPaywallLoading(false);
+    }
+  }
 
   // 有结果时预生成二维码
   useEffect(() => {
@@ -126,10 +182,12 @@ export default function Home() {
         minDelay,
       ]);
 
+      if (res.status === 402) { setShowPaywall(true); return; }
       if (!res.ok) { setError('加密失败，请稍后重试'); return; }
 
       const data = await res.json() as EncodeResult;
       setEncodeResult(data);
+      setUsageCount(c => c !== null ? c + 1 : 1);
     } catch {
       setError('网络错误，请检查连接后重试');
     } finally {
@@ -170,9 +228,11 @@ export default function Home() {
         minDelay,
       ]);
 
+      if (res.status === 402) { setShowPaywall(true); return; }
       if (!res.ok) { setError('解密失败，请稍后重试'); return; }
 
       const data = await res.json() as DecodeResult;
+      setUsageCount(c => c !== null ? c + 1 : 1);
       setResult({
         ...data,
         quote: data.quote || VIRAL_QUOTES[Math.floor(Math.random() * VIRAL_QUOTES.length)],
@@ -225,6 +285,23 @@ export default function Home() {
         <p className="text-sm md:text-lg text-neon-yellow/80 tracking-wider">
           {mode === 'decode' ? '[ 撕碎职场假面，还你人间清醒 ]' : '[ 白话变黑话，让老板看不懂你有多闲 ]'}
         </p>
+        {usageCount !== null && (
+          <div className="mt-3 flex justify-center">
+            {isPro ? (
+              <span className="text-xs text-neon-yellow border border-neon-yellow/40 px-3 py-1 rounded-full font-bold">
+                ✦ 永久会员 · 无限使用
+              </span>
+            ) : usageCount < FREE_LIMIT ? (
+              <span className="text-xs text-neon-yellow/50 border border-neon-yellow/20 px-3 py-1 rounded-full">
+                免费剩余 <span className="text-neon-yellow font-bold">{FREE_LIMIT - usageCount}</span> 次
+              </span>
+            ) : (
+              <button onClick={() => setShowPaywall(true)} className="text-xs text-[#FF3B30] border border-[#FF3B30]/40 px-3 py-1 rounded-full hover:bg-[#FF3B30]/10 transition-all animate-pulse">
+                ⚠ 免费次数已用完 · 点击解锁
+              </button>
+            )}
+          </div>
+        )}
       </header>
 
       {/* 模式切换 */}
@@ -525,6 +602,60 @@ export default function Home() {
                 关闭
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 付费解锁弹窗 */}
+      {showPaywall && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/95 p-4"
+          onClick={() => { if (!polling) setShowPaywall(false); }}>
+          <div className="max-w-sm w-full bg-[#0a0a0a] border-2 border-neon-yellow/60 rounded-2xl p-6 flex flex-col gap-5"
+            onClick={e => e.stopPropagation()}>
+
+            <div className="text-center">
+              <div className="text-5xl mb-3">🔓</div>
+              <h2 className="text-xl font-bold text-white mb-1">解锁永久使用权</h2>
+              <p className="text-white/50 text-sm">一次付费，永久免费，支持微信 / 支付宝</p>
+            </div>
+
+            <div className="bg-[#111] rounded-xl p-4 space-y-2.5 text-sm">
+              <div className="flex justify-between text-white/70">
+                <span>免费体验</span><span>3 次</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-white/70">解锁后</span>
+                <span className="text-neon-yellow font-bold">永久无限使用</span>
+              </div>
+              <div className="flex justify-between text-white/70">
+                <span>已使用</span><span>{usageCount ?? 0} 次</span>
+              </div>
+            </div>
+
+            {polling ? (
+              <div className="w-full bg-[#1a1a1a] border border-neon-yellow/30 py-3.5 rounded-xl flex items-center justify-center gap-3 text-sm text-neon-yellow/70">
+                <span className="w-4 h-4 border-2 border-neon-yellow/30 border-t-neon-yellow rounded-full animate-spin inline-block" />
+                <span>正在查询支付状态...</span>
+              </div>
+            ) : (
+              <button
+                onClick={handlePayClick}
+                disabled={paywallLoading}
+                className="w-full bg-neon-yellow text-black font-bold py-3.5 rounded-xl hover:bg-neon-yellow/80 active:scale-95 transition-all flex items-center justify-center gap-2 text-base disabled:opacity-60"
+              >
+                {paywallLoading
+                  ? <><span className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin inline-block" /><span>跳转中...</span></>
+                  : <><span>💳</span><span>立即解锁</span></>
+                }
+              </button>
+            )}
+
+            {!polling && (
+              <button onClick={() => setShowPaywall(false)}
+                className="text-center text-white/25 text-xs hover:text-white/50 transition-colors">
+                稍后再说
+              </button>
+            )}
           </div>
         </div>
       )}

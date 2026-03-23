@@ -111,3 +111,38 @@ export async function likeJargon(
   return row?.like_count ?? 0;
 }
 
+// ── 用户权限 ────────────────────────────────────────────────
+
+export const FREE_LIMIT = 3;
+
+export interface UserStatus {
+  usageCount: number;
+  isPro: boolean;
+}
+
+export async function getOrCreateUser(db: D1Database, sessionId: string): Promise<UserStatus> {
+  await db.prepare('INSERT OR IGNORE INTO users (session_id) VALUES (?)').bind(sessionId).run();
+  const row = await db
+    .prepare('SELECT usage_count, is_pro FROM users WHERE session_id = ?')
+    .bind(sessionId)
+    .first<{ usage_count: number; is_pro: number }>();
+  return { usageCount: row?.usage_count ?? 0, isPro: (row?.is_pro ?? 0) === 1 };
+}
+
+export async function incrementUsageCount(db: D1Database, sessionId: string): Promise<void> {
+  await db
+    .prepare('UPDATE users SET usage_count = usage_count + 1 WHERE session_id = ?')
+    .bind(sessionId)
+    .run();
+}
+
+export async function activatePro(db: D1Database, sessionId: string): Promise<void> {
+  await db
+    .prepare(`
+      INSERT INTO users (session_id, is_pro, paid_at) VALUES (?, 1, ?)
+      ON CONFLICT(session_id) DO UPDATE SET is_pro = 1, paid_at = excluded.paid_at
+    `)
+    .bind(sessionId, new Date().toISOString())
+    .run();
+}
+
